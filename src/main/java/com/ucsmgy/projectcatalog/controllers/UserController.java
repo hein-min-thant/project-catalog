@@ -4,13 +4,20 @@ package com.ucsmgy.projectcatalog.controllers;
 import com.ucsmgy.projectcatalog.dtos.*;
 import com.ucsmgy.projectcatalog.exceptions.DuplicateUserException;
 import com.ucsmgy.projectcatalog.exceptions.UserNotFoundException;
+import com.ucsmgy.projectcatalog.services.LoginService;
 import com.ucsmgy.projectcatalog.services.RegistrationService;
 import com.ucsmgy.projectcatalog.services.UserService;
+import com.ucsmgy.projectcatalog.util.JwtUtil;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -22,6 +29,39 @@ import java.util.Map;
 public class UserController {
     private final UserService userService;
     private final RegistrationService registrationService;
+    private final LoginService loginService;
+    private final UserDetailsService userDetailsService;
+    private final JwtUtil jwtUtil;
+
+    @PostMapping("/login/request-code")
+    public ResponseEntity<String> requestCodeForLogin(@Valid @RequestBody LoginRequest request) {
+        loginService.requestCode(request);
+        return ResponseEntity.ok("Verification code sent to your email.");
+    }
+
+    @GetMapping("login/test")
+    public String test(){
+        UserDetails user = userDetailsService.loadUserByUsername("hmt9733@gmail.com");
+        String token = jwtUtil.generateToken(user);
+        boolean valid = jwtUtil.validateToken(token , user);
+        return "token" + token + "valid" + valid;
+    }
+    // STEP 2: Verifies the code and returns the JWT
+    @PostMapping("/login/verify-and-authenticate")
+    public ResponseEntity<?> verifyAndAuthenticate(@Valid @RequestBody VerificationRequest request) {
+        try {
+            // This method now returns a User object instead of a boolean
+            com.ucsmgy.projectcatalog.entities.User user = loginService.verifyAndGetUser(request);
+
+            final UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
+            final String jwt = jwtUtil.generateToken(userDetails);
+
+            return ResponseEntity.ok(new JwtResponse(jwt));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(401).body(e.getMessage());
+        }
+    }
+
     @GetMapping
     public Iterable<UserDto> getAllUsers(
             @RequestParam(required = false, defaultValue = "", name = "sort") String sortBy

@@ -43,6 +43,9 @@ public class User {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @Column(name = "role")
+    private String role;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Project> projects = new ArrayList<>();
 
@@ -54,5 +57,4 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SavedProject> savedProjects = new ArrayList<>();
-
 }

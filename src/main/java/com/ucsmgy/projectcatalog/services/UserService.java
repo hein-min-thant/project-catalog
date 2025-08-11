@@ -13,8 +13,12 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
 import java.util.Set;
 
 @AllArgsConstructor
@@ -23,6 +27,16 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+
+    public UserDto login(String email, String password) {
+        var user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AccessDeniedException("Invalid email or password"));
+
+        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+            throw new AccessDeniedException("Invalid email or password");
+        }
+        return userMapper.toDto(user);
+    }
 
     public Iterable<UserDto> getAllUsers(String sortBy) {
         if (!Set.of("name", "email").contains(sortBy))
@@ -83,5 +97,4 @@ public class UserService {
         user.setPasswordHash(passwordHash);
         userRepository.save(user);
     }
-
 }
