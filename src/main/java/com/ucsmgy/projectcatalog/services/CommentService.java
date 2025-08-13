@@ -61,5 +61,3 @@ public class CommentService {
         commentRepository.delete(comment);
     }
 }
-
-//dehw tfoa xrqy yawe

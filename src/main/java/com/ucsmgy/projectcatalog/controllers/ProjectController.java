@@ -1,7 +1,12 @@
 package com.ucsmgy.projectcatalog.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ucsmgy.projectcatalog.dtos.ProjectRequestDTO;
 import com.ucsmgy.projectcatalog.dtos.ProjectResponseDTO;
+import com.ucsmgy.projectcatalog.entities.User;
+import com.ucsmgy.projectcatalog.repositories.UserRepository;
 import com.ucsmgy.projectcatalog.services.ProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -9,11 +14,15 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.security.Principal;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -22,19 +31,26 @@ import java.util.Optional;
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final UserRepository userRepository;
 
-    // --- Create a Project with File Upload ---
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProjectResponseDTO> create(
             @ModelAttribute ProjectRequestDTO dto,
-            Principal principal,
-            UriComponentsBuilder uriBuilder) {
+            @AuthenticationPrincipal UserDetails userDetails,
+            UriComponentsBuilder uriBuilder) throws JsonProcessingException {
 
-        // In a real application, you would get the user's ID from the principal object
-        // e.g., Long userId = myUserService.getUserId(principal.getName());
-        Long userId = 1L; // For demonstration, use a placeholder
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        ProjectResponseDTO createdProject = projectService.create(dto, userId);
+        Long userId = user.getId();
+
+        Map<String, String> membersMap = new HashMap<>();
+        if (dto.getMembersJson() != null && !dto.getMembersJson().isEmpty()) {
+            ObjectMapper mapper = new ObjectMapper();
+            membersMap = mapper.readValue(dto.getMembersJson(), new TypeReference<Map<String, String>>() {});
+        }
+
+        ProjectResponseDTO createdProject = projectService.create(dto, userId, membersMap);
 
         URI uri = uriBuilder
                 .path("/projects/{id}")
@@ -49,13 +65,17 @@ public class ProjectController {
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProjectResponseDTO> update(
             @PathVariable Long id,
-            @ModelAttribute ProjectRequestDTO dto) {
+            @ModelAttribute ProjectRequestDTO dto) throws JsonProcessingException {
 
-        ProjectResponseDTO updatedProject = projectService.update(id, dto);
+        Map<String, String> membersMap = new HashMap<>();
+        if (dto.getMembersJson() != null && !dto.getMembersJson().isEmpty()) {
+            ObjectMapper mapper = new ObjectMapper();
+            membersMap = mapper.readValue(dto.getMembersJson(), new TypeReference<Map<String, String>>() {});
+        }
+
+        ProjectResponseDTO updatedProject = projectService.update(id, dto , membersMap);
         return ResponseEntity.ok(updatedProject);
     }
-
-    // --- Existing endpoints remain largely the same ---
 
     @GetMapping("/{id}")
     public ResponseEntity<ProjectResponseDTO> getById(@PathVariable Long id) {
@@ -69,16 +89,16 @@ public class ProjectController {
         return ResponseEntity.ok(projectService.getAll(page, size));
     }
 
-    // ----------------- NEW ENDPOINT -----------------
-    // API for searching, sorting, and paging
     @GetMapping("/search")
     public ResponseEntity<Page<ProjectResponseDTO>> search(
             @RequestParam(required = false) Optional<String> keyword,
             @RequestParam(required = false) Optional<Long> categoryId,
             @RequestParam(required = false) Optional<String> status,
             @RequestParam(required = false) Optional<String> tags,
-            @RequestParam(required = false) Optional<String> academicYear, // NEW
-            @RequestParam(required = false) Optional<String> studentYear, // Comma-separated list of tag names
+            @RequestParam(required = false) Optional<String> academicYear,
+            @RequestParam(required = false) Optional<String> studentYear,
+            @RequestParam(required = false) Optional<String> name,
+            @RequestParam(required = false) Optional<String> members,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
@@ -89,8 +109,10 @@ public class ProjectController {
                 categoryId,
                 status,
                 tags,
-                academicYear, // NEW
+                academicYear,
                 studentYear,
+                name,
+                members,
                 page,
                 size,
                 sortBy,

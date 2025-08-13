@@ -28,23 +28,20 @@ public class DropboxStorageService implements CloudStorageService {
             throw new IllegalArgumentException("File cannot be null or empty");
         }
 
-        // 1. Generate a unique filename to avoid conflicts
         String originalFilename = multipartFile.getOriginalFilename();
         String extension = "";
         if (originalFilename != null && originalFilename.contains(".")) {
             extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         }
         String uniqueFilename = UUID.randomUUID().toString() + extension;
-        String dropboxPath = "/" + uniqueFilename; // Path in the user's root Dropbox folder
+        String dropboxPath = "/" + uniqueFilename;
 
-        // 2. Upload the file
         try (InputStream in = multipartFile.getInputStream()) {
             FileMetadata metadata = dropboxClient.files().uploadBuilder(dropboxPath)
                     .withMode(WriteMode.ADD)
                     .uploadAndFinish(in);
         }
 
-        // 3. Create a sharable link for the uploaded file and return it
         return dropboxClient.sharing().createSharedLinkWithSettings(dropboxPath).getUrl();
     }
 }

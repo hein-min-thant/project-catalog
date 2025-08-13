@@ -6,7 +6,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -26,4 +28,5 @@ public class ProjectResponseDTO {
     private String status;
     private List<String> projectFiles;
     private List<String> tags;
+    private String membersJson;
 }

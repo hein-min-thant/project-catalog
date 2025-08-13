@@ -14,14 +14,12 @@ public class ReactionController {
 
     private final ReactionService reactionService;
 
-    // Toggle reaction: if reacted -> remove, if not reacted -> add
     @PostMapping("/toggle")
     public ResponseEntity<ReactionResponseDTO> toggleReaction(@RequestBody ReactionDTO dto) {
         ReactionResponseDTO response = reactionService.toggleReaction(dto.getProjectId(), dto.getUserId());
         return ResponseEntity.ok(response);
     }
 
-    // Optional: get reaction status for a user on a project
     @GetMapping("/status")
     public ResponseEntity<ReactionResponseDTO> getReactionStatus(
             @RequestParam Long projectId,

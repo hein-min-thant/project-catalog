@@ -1,28 +1,29 @@
 package com.ucsmgy.projectcatalog.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Setter
+@Table(name = "members")
 @Getter
-@AllArgsConstructor
+@Setter
 @NoArgsConstructor
-@Table(name = "tags")
-public class Tag {
+@AllArgsConstructor
+@Builder
+public class Member {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false)
     private String name;
 
-    @ManyToMany(mappedBy = "tags")
+    private String rollNumber;
+
+    @ManyToMany(mappedBy = "members")
     private Set<Project> projects = new HashSet<>();
 }

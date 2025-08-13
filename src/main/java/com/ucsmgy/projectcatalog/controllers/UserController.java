@@ -2,6 +2,7 @@ package com.ucsmgy.projectcatalog.controllers;
 
 
 import com.ucsmgy.projectcatalog.dtos.*;
+import com.ucsmgy.projectcatalog.entities.User;
 import com.ucsmgy.projectcatalog.exceptions.DuplicateUserException;
 import com.ucsmgy.projectcatalog.exceptions.UserNotFoundException;
 import com.ucsmgy.projectcatalog.services.LoginService;
@@ -13,9 +14,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
@@ -46,12 +45,11 @@ public class UserController {
         boolean valid = jwtUtil.validateToken(token , user);
         return "token" + token + "valid" + valid;
     }
-    // STEP 2: Verifies the code and returns the JWT
-    @PostMapping("/login/verify-and-authenticate")
+
+    @PostMapping("/login/verify")
     public ResponseEntity<?> verifyAndAuthenticate(@Valid @RequestBody VerificationRequest request) {
         try {
-            // This method now returns a User object instead of a boolean
-            com.ucsmgy.projectcatalog.entities.User user = loginService.verifyAndGetUser(request);
+            User user = loginService.verifyAndGetUser(request);
 
             final UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
             final String jwt = jwtUtil.generateToken(userDetails);
@@ -98,6 +96,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or #id == principal.id")
     public void deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
     }

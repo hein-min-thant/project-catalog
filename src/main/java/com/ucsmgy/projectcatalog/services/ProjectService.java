@@ -7,13 +7,11 @@ import com.ucsmgy.projectcatalog.entities.*;
 import com.ucsmgy.projectcatalog.entities.Project.Status;
 import com.ucsmgy.projectcatalog.exceptions.EntityNotFoundException;
 import com.ucsmgy.projectcatalog.mappers.ProjectMapper;
-import com.ucsmgy.projectcatalog.repositories.CategoryRepository;
-import com.ucsmgy.projectcatalog.repositories.ProjectRepository;
-import com.ucsmgy.projectcatalog.repositories.TagRepository;
-import com.ucsmgy.projectcatalog.repositories.UserRepository;
+import com.ucsmgy.projectcatalog.repositories.*;
 import com.ucsmgy.projectcatalog.util.HtmlImageProcessor;
 import com.ucsmgy.projectcatalog.util.HtmlSanitizer;
 import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,11 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,16 +37,17 @@ public class ProjectService {
     private final ProjectMapper projectMapper;
     private final ImgbbService imgbbService;
     private final TagRepository tagRepository;
+    private final MemberRepository memberRepository;
 
     @Transactional
-    public ProjectResponseDTO create(ProjectRequestDTO dto, Long userId) {
+    public ProjectResponseDTO create(ProjectRequestDTO dto, Long userId ,Map<String, String> membersMap) {
         try {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new EntityNotFoundException("User with ID " + userId + " not found"));
 
             Project project = projectMapper.toEntity(dto);
             project.setUser(user);
-            applyDtoUpdatesAndUploads(project, dto);
+            applyDtoUpdatesAndUploads(project, dto , membersMap);
 
             Project savedProject = projectRepository.save(project);
 
@@ -64,17 +59,17 @@ public class ProjectService {
     }
 
     @Transactional
-    public ProjectResponseDTO update(Long projectId, ProjectRequestDTO dto) {
+    public ProjectResponseDTO update(Long projectId, ProjectRequestDTO dto, Map<String, String> membersMap) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("Project with ID " + projectId + " not found"));
         projectMapper.updateFromDto(dto, project);
 
-        applyDtoUpdatesAndUploads(project, dto);
+        applyDtoUpdatesAndUploads(project, dto ,membersMap);
 
         return projectMapper.toDTO(projectRepository.save(project));
     }
 
-    private void applyDtoUpdatesAndUploads(Project project, ProjectRequestDTO dto) {
+    private void applyDtoUpdatesAndUploads(Project project, ProjectRequestDTO dto ,Map<String, String> membersMap) {
         if (dto.getBody() != null) {
             String processedBody = HtmlImageProcessor.processImages(dto.getBody(), imgbbService);
             String sanitizedBody = HtmlSanitizer.sanitize(processedBody);
@@ -107,13 +102,36 @@ public class ProjectService {
             project.setTags(tagEntities);
         }
 
+
+        if (membersMap != null && !membersMap.isEmpty()) {
+            Set<Member> memberEntities = membersMap.entrySet().stream()
+                    .map(entry -> {
+                        String name = entry.getKey().trim();
+                        String rollNumber = entry.getValue();
+
+                        return memberRepository.findByNameIgnoreCase(name)
+                                .orElseGet(() -> {
+                                    Member newMember = new Member();
+                                    newMember.setName(name);
+                                    if (rollNumber != null && !rollNumber.isEmpty()) {
+                                        newMember.setRollNumber(rollNumber.trim());
+                                    }
+                                    return memberRepository.save(newMember);
+                                });
+                    })
+                    .collect(Collectors.toSet());
+
+            project.setMembers(memberEntities);
+        }
+
         if (dto.getProjectFiles() != null && !dto.getProjectFiles().isEmpty()) {
             for (MultipartFile file : dto.getProjectFiles()) {
                 if (!file.isEmpty()) {
                     try {
                         String fileUrl = cloudStorageService.uploadFile(file);
+                        String downloadUrl = fileUrl.replace("dl=0", "dl=1");
                         ProjectFile projectFile = new ProjectFile();
-                        projectFile.setFilePath(fileUrl);
+                        projectFile.setFilePath(downloadUrl);
                         projectFile.setProject(project);
                         project.getFiles().add(projectFile);
                     } catch (IOException e) {
@@ -143,8 +161,10 @@ public class ProjectService {
             Optional<Long> categoryId,
             Optional<String> status,
             Optional<String> tags,
-            Optional<String> academicYear, // NEW
+            Optional<String> academicYear,
             Optional<String> studentYear,
+            Optional<String> name,
+            Optional<String> members,
             int page,
             int size,
             String sortBy,
@@ -153,7 +173,7 @@ public class ProjectService {
         Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Specification<Project> spec = new ProjectSpecification(keyword, categoryId, status, tags, academicYear,studentYear);
+        Specification<Project> spec = new ProjectSpecification(keyword, categoryId, status, tags, academicYear,studentYear,name, members);
 
         return projectRepository.findAll(spec, pageable).map(projectMapper::toDTO);
     }
@@ -166,6 +186,8 @@ public class ProjectService {
         private final Optional<String> tags;
         private final Optional<String> academicYear;
         private final Optional<String> studentYear;
+        private final Optional<String> name;
+        private final Optional<String> members;
 
         @Override
         public Predicate toPredicate(jakarta.persistence.criteria.Root<Project> root, jakarta.persistence.criteria.CriteriaQuery<?> query, jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder) {
@@ -196,7 +218,6 @@ public class ProjectService {
                 if (!tagList.isEmpty()) {
                     Join<Project, Tag> tagsJoin = root.join("tags");
                     predicates.add(tagsJoin.get("name").in(tagList));
-                    // Add distinct to prevent duplicate results for projects with multiple matching tags
                     query.distinct(true);
                 }
             });
@@ -209,6 +230,21 @@ public class ProjectService {
                     predicates.add(criteriaBuilder.equal(root.get("student_year"), year))
             );
 
+            name.ifPresent(n -> {
+                Join<Project, User> userJoin = root.join("user", JoinType.LEFT);
+                predicates.add(criteriaBuilder.equal(userJoin.get("name"), n));
+            });
+
+
+            // from source: 44, 45
+            members.ifPresent(MemberNames -> {
+                Set<String> memberList = Set.of(MemberNames.split(","));
+                if (!memberList.isEmpty()) {
+                    Join<Project, Member> MemberJoin = root.join("members"); // Correctly joins the members table
+                    predicates.add(MemberJoin.get("name").in(memberList));   // Correctly filters by the list of member names
+                    query.distinct(true);
+                }
+            });
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         }

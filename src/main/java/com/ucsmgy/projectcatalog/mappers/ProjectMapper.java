@@ -1,5 +1,7 @@
 package com.ucsmgy.projectcatalog.mappers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ucsmgy.projectcatalog.dtos.ProjectRequestDTO;
 import com.ucsmgy.projectcatalog.dtos.ProjectResponseDTO;
 import com.ucsmgy.projectcatalog.entities.Project;
@@ -8,12 +10,14 @@ import com.ucsmgy.projectcatalog.entities.Tag;
 import org.mapstruct.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface ProjectMapper {
 
+    ObjectMapper objectMapper = new ObjectMapper();
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "excerpt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
@@ -37,6 +41,7 @@ public interface ProjectMapper {
 
     @Mapping(target = "projectFiles", expression = "java(mapFiles(project))")
     @Mapping(target = "tags", expression = "java(mapTags(project))")
+    @Mapping(target = "membersJson", expression = "java(mapMembers(project))")
     ProjectResponseDTO toDTO(Project project);
 
 
@@ -58,6 +63,25 @@ public interface ProjectMapper {
                     return tag;
                 })
                 .collect(Collectors.toSet());
+    }
+
+    default String mapMembers(Project project) {
+        if (project.getMembers() == null || project.getMembers().isEmpty()) {
+            return "[]";
+        }
+
+        List<Map<String, String>> membersList = project.getMembers().stream()
+                .map(m -> Map.of(
+                        "name", m.getName(),
+                        "rollNumber", m.getRollNumber() != null ? m.getRollNumber() : ""
+                ))
+                .toList();
+
+        try {
+            return objectMapper.writeValueAsString(membersList);
+        } catch (JsonProcessingException e) {
+            return "[]"; // fallback
+        }
     }
 
     default List<String> mapTags(Project project) {

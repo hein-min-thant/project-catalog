@@ -33,10 +33,8 @@ public class ReactionService {
         Optional<Reaction> existingReaction = reactionRepository.findByProjectIdAndUserId(projectId, userId);
 
         if (existingReaction.isPresent()) {
-            // User already reacted, so remove reaction (unreact)
             reactionRepository.delete(existingReaction.get());
         } else {
-            // Add new reaction
             Reaction reaction = new Reaction();
             reaction.setProject(project);
             reaction.setUser(user);

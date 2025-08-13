@@ -1,6 +1,7 @@
 package com.ucsmgy.projectcatalog.repositories;
 
 import com.ucsmgy.projectcatalog.entities.Reaction;
+import com.ucsmgy.projectcatalog.entities.SavedProject;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

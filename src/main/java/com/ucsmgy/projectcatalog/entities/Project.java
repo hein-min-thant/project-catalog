@@ -104,6 +104,15 @@ public class Project {
     @Builder.Default
     private Set<Tag> tags = new HashSet<>();
 
+    @ManyToMany
+    @JoinTable(
+            name = "project_members",
+            joinColumns = @JoinColumn(name = "project_id"),
+            inverseJoinColumns = @JoinColumn(name = "member_id")
+    )
+    @Builder.Default
+    private Set<Member> members = new HashSet<>();
+
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<SavedProject> savedByUsers = new ArrayList<>();
