@@ -6,6 +6,8 @@ import com.ucsmgy.projectcatalog.dtos.VerificationRequest;
 import com.ucsmgy.projectcatalog.entities.RegistrationToken;
 import com.ucsmgy.projectcatalog.entities.User;
 import com.ucsmgy.projectcatalog.exceptions.DuplicateUserException;
+import com.ucsmgy.projectcatalog.exceptions.InvalidVerificationCodeException;
+import com.ucsmgy.projectcatalog.exceptions.VerificationCodeExpiredException;
 import com.ucsmgy.projectcatalog.repositories.RegistrationTokenRepository;
 import com.ucsmgy.projectcatalog.repositories.UserRepository;
 import com.ucsmgy.projectcatalog.mappers.UserMapper;
@@ -40,7 +42,7 @@ public class RegistrationService {
         String code = String.format("%06d", new Random().nextInt(1000000));
         String hashedPassword = passwordEncoder.encode(request.getPassword());
         RegistrationToken token = new RegistrationToken();
-        token.setName(request.getName()); // Save the name
+        token.setName(request.getName());
         token.setEmail(request.getEmail());
         token.setHashedPassword(hashedPassword);
         token.setVerificationCode(code);
@@ -51,30 +53,31 @@ public class RegistrationService {
 
 
 
-    public UserDto verifyAndCreate(VerificationRequest request) { // Changed return type to UserDto
+    public UserDto verifyAndCreate(VerificationRequest request) {
         Optional<RegistrationToken> tokenOpt = tokenRepository.findByEmailAndVerificationCode(
                 request.getEmail(), request.getCode()
         );
 
         if (tokenOpt.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid code or email.");
+            throw new InvalidVerificationCodeException();
         }
 
         RegistrationToken token = tokenOpt.get();
 
         if (token.getExpiryDate().before(Timestamp.from(Instant.now()))) {
             tokenRepository.delete(token);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Verification code has expired.");
+            throw new VerificationCodeExpiredException();
         }
 
         User newUser = new User();
         newUser.setEmail(token.getEmail());
-        newUser.setName(token.getName()); // Use the name from the token
+        newUser.setName(token.getName());
         newUser.setPasswordHash(token.getHashedPassword());
+        newUser.setRole("USER");
         User createdUser = userRepository.save(newUser);
 
         tokenRepository.delete(token);
 
-        return userMapper.toDto(createdUser); // Return the DTO
+        return userMapper.toDto(createdUser);
     }
 }

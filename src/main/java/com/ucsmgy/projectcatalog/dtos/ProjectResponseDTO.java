@@ -25,7 +25,14 @@ public class ProjectResponseDTO {
     private String academic_year;
     private String student_year;
     private String objectives;
-    private String status;
+    private Long userId;
+    private Long categoryId;
+    private Long supervisorId;
+    private String supervisorName;
+    private String approvalStatus;
+    private LocalDateTime approvedAt;
+    private Long approvedById;
+    private String approvedByName;
     private List<String> projectFiles;
     private List<String> tags;
     private String membersJson;

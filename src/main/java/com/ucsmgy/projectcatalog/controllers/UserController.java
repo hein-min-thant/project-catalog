@@ -7,6 +7,7 @@ import com.ucsmgy.projectcatalog.exceptions.DuplicateUserException;
 import com.ucsmgy.projectcatalog.exceptions.UserNotFoundException;
 import com.ucsmgy.projectcatalog.services.LoginService;
 import com.ucsmgy.projectcatalog.services.RegistrationService;
+import com.ucsmgy.projectcatalog.services.UserRoleService;
 import com.ucsmgy.projectcatalog.services.UserService;
 import com.ucsmgy.projectcatalog.util.JwtUtil;
 import jakarta.validation.Valid;
@@ -15,11 +16,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -31,19 +34,12 @@ public class UserController {
     private final LoginService loginService;
     private final UserDetailsService userDetailsService;
     private final JwtUtil jwtUtil;
+    private final UserRoleService userRoleService;
 
     @PostMapping("/login/request-code")
     public ResponseEntity<String> requestCodeForLogin(@Valid @RequestBody LoginRequest request) {
         loginService.requestCode(request);
         return ResponseEntity.ok("Verification code sent to your email.");
-    }
-
-    @GetMapping("login/test")
-    public String test(){
-        UserDetails user = userDetailsService.loadUserByUsername("hmt9733@gmail.com");
-        String token = jwtUtil.generateToken(user);
-        boolean valid = jwtUtil.validateToken(token , user);
-        return "token" + token + "valid" + valid;
     }
 
     @PostMapping("/login/verify")
@@ -59,6 +55,14 @@ public class UserController {
             return ResponseEntity.status(401).body(e.getMessage());
         }
     }
+
+    @GetMapping("/supervisors")
+    public ResponseEntity<List<User>> getAllSupervisors() {
+
+        List<User> supervisors = userService.getAllSupervisors("SUPERVISOR");
+        return ResponseEntity.ok(supervisors);
+    }
+
 
     @GetMapping
     public Iterable<UserDto> getAllUsers(
@@ -88,7 +92,7 @@ public class UserController {
     }
 
 
-    @PatchMapping("/{id}")
+    @PutMapping("/{id}")
     public UserDto updateUser(
             @PathVariable(name = "id") Long id,
             @RequestBody UpdateUserRequest request) {
@@ -108,6 +112,12 @@ public class UserController {
         userService.changePassword(id, request);
     }
 
+    @GetMapping("/me")
+    public UserDto getCurrentUser(Authentication authentication) {
+        String email = authentication.getName();
+
+        return userService.findByEmail(email);
+    }
     @ExceptionHandler(DuplicateUserException.class)
     public ResponseEntity<Map<String, String>> handleDuplicateUser() {
         return ResponseEntity.badRequest().body(

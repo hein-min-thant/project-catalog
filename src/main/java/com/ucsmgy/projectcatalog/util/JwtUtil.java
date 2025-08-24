@@ -53,7 +53,7 @@ public class JwtUtil {
 
     private String createToken(Map<String, Object> claims, String subject) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + 1000 * 60 * 60 * 10); // 10 hours
+        Date expiryDate = new Date(now.getTime() + 1000 * 60 * 60 * 24 * 7); // 10 hours
 
         return Jwts.builder()
                 .claims()

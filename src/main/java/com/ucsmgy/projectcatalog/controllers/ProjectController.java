@@ -22,6 +22,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.security.Principal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -62,6 +63,11 @@ public class ProjectController {
                 .body(createdProject);
     }
 
+    @GetMapping("/user/{userId}/projects")
+    public List<ProjectResponseDTO> getUserProjects(@PathVariable Long userId) {
+        return projectService.getProjectsByUserId(userId);
+    }
+
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProjectResponseDTO> update(
             @PathVariable Long id,
@@ -85,15 +91,24 @@ public class ProjectController {
     @GetMapping
     public ResponseEntity<Page<ProjectResponseDTO>> getAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(projectService.getAll(page, size));
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        // If user is admin, show all projects. Otherwise, only show approved projects
+        if ("ADMIN".equals(user.getRole())) {
+            return ResponseEntity.ok(projectService.getAll(page, size));
+        } else {
+            return ResponseEntity.ok(projectService.getApprovedProjects(page, size));
+        }
     }
 
     @GetMapping("/search")
     public ResponseEntity<Page<ProjectResponseDTO>> search(
             @RequestParam(required = false) Optional<String> keyword,
             @RequestParam(required = false) Optional<Long> categoryId,
-            @RequestParam(required = false) Optional<String> status,
             @RequestParam(required = false) Optional<String> tags,
             @RequestParam(required = false) Optional<String> academicYear,
             @RequestParam(required = false) Optional<String> studentYear,
@@ -102,22 +117,60 @@ public class ProjectController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDirection) {
+            @RequestParam(defaultValue = "desc") String sortDirection,
+            @AuthenticationPrincipal UserDetails userDetails) {
 
-        Page<ProjectResponseDTO> result = projectService.search(
-                keyword,
-                categoryId,
-                status,
-                tags,
-                academicYear,
-                studentYear,
-                name,
-                members,
-                page,
-                size,
-                sortBy,
-                sortDirection
-        );
-        return ResponseEntity.ok(result);
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        // If user is admin, search all projects. Otherwise, only search approved projects
+        if ("ADMIN".equals(user.getRole())) {
+            Page<ProjectResponseDTO> result = projectService.search(
+                    keyword,
+                    categoryId,
+                    tags,
+                    academicYear,
+                    studentYear,
+                    name,
+                    members,
+                    page,
+                    size,
+                    sortBy,
+                    sortDirection
+            );
+            return ResponseEntity.ok(result);
+        } else {
+            Page<ProjectResponseDTO> result = projectService.searchApprovedProjects(
+                    keyword,
+                    categoryId,
+                    tags,
+                    academicYear,
+                    studentYear,
+                    name,
+                    members,
+                    page,
+                    size,
+                    sortBy,
+                    sortDirection
+            );
+            return ResponseEntity.ok(result);
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProject(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        // Only admins can delete projects
+        if (!"ADMIN".equals(user.getRole())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        
+        projectService.deleteProject(id);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -1,5 +1,6 @@
 package com.ucsmgy.projectcatalog.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -71,9 +72,21 @@ public class Project {
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @Column(nullable = false, length = 20)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "supervisor_id")
+    private User supervisor;
+
     @Enumerated(EnumType.STRING)
-    private Status status = Status.IN_PROGRESS;
+    @Column(name = "approval_status", nullable = false)
+    @Builder.Default
+    private ApprovalStatus approvalStatus = ApprovalStatus.PENDING;
+
+    @Column(name = "approved_at")
+    private LocalDateTime approvedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "approved_by")
+    private User approvedBy;
 
     @Column(name = "created_at", updatable = false)
     @CreationTimestamp
@@ -136,6 +149,28 @@ public class Project {
                 }
             }
             throw new IllegalArgumentException("Unknown status: " + value);
+        }
+    }
+
+    @Getter
+    public enum ApprovalStatus {
+        PENDING("pending"),
+        APPROVED("approved"),
+        REJECTED("rejected");
+
+        private final String value;
+
+        ApprovalStatus(String value) {
+            this.value = value;
+        }
+
+        public static ApprovalStatus fromValue(String value) {
+            for (ApprovalStatus status : ApprovalStatus.values()) {
+                if (status.value.equalsIgnoreCase(value)) {
+                    return status;
+                }
+            }
+            throw new IllegalArgumentException("Unknown approval status: " + value);
         }
     }
 

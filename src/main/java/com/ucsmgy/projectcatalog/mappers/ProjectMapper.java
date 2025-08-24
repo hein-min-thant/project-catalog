@@ -20,8 +20,6 @@ public interface ProjectMapper {
     ObjectMapper objectMapper = new ObjectMapper();
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "excerpt", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "user", ignore = true)
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "reactions", ignore = true)
@@ -29,19 +27,25 @@ public interface ProjectMapper {
     @Mapping(target = "files", ignore = true) // handled separately in service
     @Mapping(target = "savedByUsers", ignore = true)
     @Mapping(target = "tags", ignore = true)
-    @Mapping(source = "status", target = "status", qualifiedByName = "mapStatus")
     Project toEntity(ProjectRequestDTO dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "files", ignore = true)
-    @Mapping(target = "tags", ignore = true) // <-- FIX: Ignore tag mapping here
-    @Mapping(source = "status", target = "status", qualifiedByName = "mapStatus")
+    @Mapping(target = "tags", source = "tags", qualifiedByName = "mapTagStringsToEntities")
     void updateFromDto(ProjectRequestDTO dto, @MappingTarget Project project);
 
     @Mapping(target = "projectFiles", expression = "java(mapFiles(project))")
     @Mapping(target = "tags", expression = "java(mapTags(project))")
     @Mapping(target = "membersJson", expression = "java(mapMembers(project))")
+    @Mapping(source = "user.id", target = "userId") // maps the user's ID
+    @Mapping(source = "category.id", target = "categoryId") // maps the category's ID
+    @Mapping(source = "supervisor.id", target = "supervisorId") // maps the supervisor's ID
+    @Mapping(source = "supervisor.name", target = "supervisorName") // maps the supervisor's name
+    @Mapping(source = "approvalStatus", target = "approvalStatus") // maps the approval status
+    @Mapping(source = "approvedAt", target = "approvedAt") // maps the approval date
+    @Mapping(source = "approvedBy.id", target = "approvedById") // maps the approver's ID
+    @Mapping(source = "approvedBy.name", target = "approvedByName") // maps the approver's name
     ProjectResponseDTO toDTO(Project project);
 
 
@@ -53,7 +57,8 @@ public interface ProjectMapper {
         return Project.Status.valueOf(status.toUpperCase());
     }
 
-    default Set<Tag> mapTagsFromStrings(List<String> tagNames) {
+    @Named("mapTagStringsToEntities")
+    default Set<Tag> mapTagStringsToEntities(List<String> tagNames) {
         if (tagNames == null) return Set.of();
         return tagNames.stream()
                 .filter(name -> name != null && !name.isBlank())
@@ -98,5 +103,3 @@ public interface ProjectMapper {
                 .toList();
     }
 }
-
-

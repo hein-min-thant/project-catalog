@@ -41,7 +41,6 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
             }
         }
 
-        // Continue the filter chain
         filterChain.doFilter(request, response);
     }
 }

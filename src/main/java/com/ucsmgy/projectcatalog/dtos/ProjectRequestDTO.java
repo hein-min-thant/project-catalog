@@ -20,9 +20,8 @@ public class ProjectRequestDTO {
     private String academic_year;
     private String student_year;
     private Long categoryId;
-    private String status;
+    private Long supervisorId;
     private List<MultipartFile> projectFiles;
-
     private List<String> tags;
     private String membersJson;
 }

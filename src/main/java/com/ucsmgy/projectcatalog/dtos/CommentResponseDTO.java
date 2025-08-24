@@ -11,7 +11,7 @@ public class CommentResponseDTO {
     private Long id;
     private Long projectId;
     private Long userId;
-    private String userName;  // Optional: for frontend convenience
+    private String userName;
     private String comment;
     private LocalDateTime createdAt;
 }

@@ -1,7 +1,5 @@
 package com.ucsmgy.projectcatalog.events;
 
-// NotificationEventListener.java
-import com.ucsmgy.projectcatalog.events.CommentCreatedEvent;
 import com.ucsmgy.projectcatalog.entities.Notification;
 import com.ucsmgy.projectcatalog.services.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +18,7 @@ public class NotificationEventListener {
         if (!"ADMIN".equalsIgnoreCase(event.getProjectOwnerRole())) {
             Notification notification = new Notification();
             notification.setRecipientUserId(event.getProjectOwnerId());
-            notification.setMessage("A new comment has been posted on your project!");
+            notification.setMessage(event.getCommenterName() + " commented on your project.");
             notification.setProjectId(event.getProjectId());
             notification.setCommentId(event.getCommentId());
 

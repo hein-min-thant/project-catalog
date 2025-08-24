@@ -19,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 @AllArgsConstructor
@@ -96,5 +97,26 @@ public class UserService {
         String passwordHash = passwordEncoder.encode(request.getNewPassword());
         user.setPasswordHash(passwordHash);
         userRepository.save(user);
+    }
+
+    public UserDto findByEmail(String email) {
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(UserNotFoundException::new);
+            return userMapper.toDto(user);
+    }
+
+    public User findByEmailEntity(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(UserNotFoundException::new);
+    }
+
+    public org.springframework.data.domain.Page<UserDto> getAllUsersPaginated(int page, int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        org.springframework.data.domain.Page<User> userPage = userRepository.findAll(pageable);
+        return userPage.map(userMapper::toDto);
+    }
+
+    public List<User> getAllSupervisors(String role) {
+        return userRepository.findByRole(role);
     }
 }

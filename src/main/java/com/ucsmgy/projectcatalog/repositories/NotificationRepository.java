@@ -1,4 +1,9 @@
 package com.ucsmgy.projectcatalog.repositories;
 
-public class NotificationRepository {
+import com.ucsmgy.projectcatalog.entities.Notification;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface NotificationRepository extends JpaRepository<Notification, Long> {
 }

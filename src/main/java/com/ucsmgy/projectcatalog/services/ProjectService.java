@@ -10,10 +10,12 @@ import com.ucsmgy.projectcatalog.mappers.ProjectMapper;
 import com.ucsmgy.projectcatalog.repositories.*;
 import com.ucsmgy.projectcatalog.util.HtmlImageProcessor;
 import com.ucsmgy.projectcatalog.util.HtmlSanitizer;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -47,6 +50,31 @@ public class ProjectService {
 
             Project project = projectMapper.toEntity(dto);
             project.setUser(user);
+            
+            // Set supervisor and approval status based on user role
+            if ("ADMIN".equals(user.getRole())) {
+                // Admin users don't need supervisor approval
+                project.setApprovalStatus(Project.ApprovalStatus.APPROVED);
+                project.setApprovedAt(LocalDateTime.now());
+                project.setApprovedBy(user);
+            } else {
+                // Regular users need supervisor approval
+                if (dto.getSupervisorId() != null) {
+                    User supervisor = userRepository.findById(dto.getSupervisorId())
+                            .orElseThrow(() -> new EntityNotFoundException("Supervisor with ID " + dto.getSupervisorId() + " not found"));
+                    
+                    // Verify the supervisor has SUPERVISOR role
+                    if (!"SUPERVISOR".equals(supervisor.getRole()) && !"ADMIN".equals(supervisor.getRole())) {
+                        throw new RuntimeException("User with ID " + dto.getSupervisorId() + " is not a supervisor");
+                    }
+                    
+                    project.setSupervisor(supervisor);
+                } else {
+                    throw new RuntimeException("Supervisor ID is required for non-admin users");
+                }
+                project.setApprovalStatus(Project.ApprovalStatus.PENDING);
+            }
+            
             applyDtoUpdatesAndUploads(project, dto , membersMap);
 
             Project savedProject = projectRepository.save(project);
@@ -73,7 +101,12 @@ public class ProjectService {
         if (dto.getBody() != null) {
             String processedBody = HtmlImageProcessor.processImages(dto.getBody(), imgbbService);
             String sanitizedBody = HtmlSanitizer.sanitize(processedBody);
-            project.setBody(sanitizedBody);
+            Document doc = Jsoup.parse(sanitizedBody);
+            Element img= doc.selectFirst("img");
+            String src = img != null ? img.attr("src") : null;
+            project.setCoverImageUrl(src);
+
+            project.setBody(dto.getBody());
         }
         if (dto.getCategoryId() != null) {
             Category category = categoryRepository.findById(dto.getCategoryId())
@@ -86,9 +119,6 @@ public class ProjectService {
 
         if(dto.getStudent_year() != null){
             project.setStudent_year(dto.getStudent_year());
-        }
-        if (dto.getStatus() != null) {
-            project.setStatus(Status.fromValue(dto.getStatus()));
         }
         if (dto.getTags() != null && !dto.getTags().isEmpty()) {
             Set<Tag> tagEntities = dto.getTags().stream()
@@ -149,6 +179,20 @@ public class ProjectService {
         return projectRepository.findAll(pageable).map(projectMapper::toDTO);
     }
 
+    public Page<ProjectResponseDTO> getApprovedProjects(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return projectRepository.findByApprovalStatus(Project.ApprovalStatus.APPROVED, pageable)
+                .map(projectMapper::toDTO);
+    }
+
+    public List<ProjectResponseDTO> getProjectsByUserId(Long userId) {
+        return projectRepository.findByUserId(userId)
+                .stream()
+                .map(projectMapper::toDTO)
+                .toList();
+    }
+
+
     public ProjectResponseDTO getById(Long id) {
         return projectMapper.toDTO(
                 projectRepository.findById(id)
@@ -159,7 +203,6 @@ public class ProjectService {
     public Page<ProjectResponseDTO> search(
             Optional<String> keyword,
             Optional<Long> categoryId,
-            Optional<String> status,
             Optional<String> tags,
             Optional<String> academicYear,
             Optional<String> studentYear,
@@ -173,7 +216,30 @@ public class ProjectService {
         Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Specification<Project> spec = new ProjectSpecification(keyword, categoryId, status, tags, academicYear,studentYear,name, members);
+        Specification<Project> spec = new ProjectSpecification(keyword, categoryId, tags, academicYear,studentYear,name, members);
+
+        return projectRepository.findAll(spec, pageable).map(projectMapper::toDTO);
+    }
+
+    public Page<ProjectResponseDTO> searchApprovedProjects(
+            Optional<String> keyword,
+            Optional<Long> categoryId,
+            Optional<String> tags,
+            Optional<String> academicYear,
+            Optional<String> studentYear,
+            Optional<String> name,
+            Optional<String> members,
+            int page,
+            int size,
+            String sortBy,
+            String sortDirection) {
+
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Specification<Project> spec = new ProjectSpecification(keyword, categoryId, tags, academicYear,studentYear,name, members)
+                .and((root, query, criteriaBuilder) -> 
+                    criteriaBuilder.equal(root.get("approvalStatus"), Project.ApprovalStatus.APPROVED));
 
         return projectRepository.findAll(spec, pageable).map(projectMapper::toDTO);
     }
@@ -182,7 +248,6 @@ public class ProjectService {
     private static class ProjectSpecification implements Specification<Project> {
         private final Optional<String> keyword;
         private final Optional<Long> categoryId;
-        private final Optional<String> status;
         private final Optional<String> tags;
         private final Optional<String> academicYear;
         private final Optional<String> studentYear;
@@ -190,7 +255,7 @@ public class ProjectService {
         private final Optional<String> members;
 
         @Override
-        public Predicate toPredicate(jakarta.persistence.criteria.Root<Project> root, jakarta.persistence.criteria.CriteriaQuery<?> query, jakarta.persistence.criteria.CriteriaBuilder criteriaBuilder) {
+        public Predicate toPredicate(Root<Project> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
             List<Predicate> predicates = new ArrayList<>();
 
             keyword.ifPresent(k -> {
@@ -203,15 +268,6 @@ public class ProjectService {
             categoryId.ifPresent(catId ->
                     predicates.add(criteriaBuilder.equal(root.get("category").get("id"), catId))
             );
-
-            status.ifPresent(s -> {
-                try {
-                    Status projectStatus = Status.fromValue(s);
-                    predicates.add(criteriaBuilder.equal(root.get("status"), projectStatus));
-                } catch (IllegalArgumentException e) {
-                    // Log or handle invalid status values
-                }
-            });
 
             tags.ifPresent(tagNames -> {
                 Set<String> tagList = Set.of(tagNames.split(","));
@@ -248,5 +304,92 @@ public class ProjectService {
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         }
+    }
+
+    @Transactional
+    public ProjectResponseDTO approveProject(Long projectId, Long approverId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException("Project with ID " + projectId + " not found"));
+        
+        User approver = userRepository.findById(approverId)
+                .orElseThrow(() -> new EntityNotFoundException("User with ID " + approverId + " not found"));
+        
+        // Check if the user is the supervisor or an admin
+        if ((project.getSupervisor() == null || !approver.getId().equals(project.getSupervisor().getId())) && 
+            !"ADMIN".equals(approver.getRole()) && !"SUPERVISOR".equals(approver.getRole())) {
+            throw new RuntimeException("User is not authorized to approve this project");
+        }
+        
+        project.setApprovalStatus(Project.ApprovalStatus.APPROVED);
+        project.setApprovedAt(LocalDateTime.now());
+        project.setApprovedBy(approver);
+        
+        Project savedProject = projectRepository.save(project);
+        return projectMapper.toDTO(savedProject);
+    }
+
+    @Transactional
+    public ProjectResponseDTO rejectProject(Long projectId, Long rejecterId, String reason) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException("Project with ID " + projectId + " not found"));
+        
+        User rejecter = userRepository.findById(rejecterId)
+                .orElseThrow(() -> new EntityNotFoundException("User with ID " + rejecterId + " not found"));
+        
+        // Check if the user is the supervisor or an admin
+        if ((project.getSupervisor() == null || !rejecter.getId().equals(project.getSupervisor().getId())) && 
+            !"ADMIN".equals(rejecter.getRole()) && !"SUPERVISOR".equals(rejecter.getRole())) {
+            throw new RuntimeException("User is not authorized to reject this project");
+        }
+        
+        project.setApprovalStatus(Project.ApprovalStatus.REJECTED);
+        project.setApprovedAt(LocalDateTime.now());
+        project.setApprovedBy(rejecter);
+        
+        Project savedProject = projectRepository.save(project);
+        return projectMapper.toDTO(savedProject);
+    }
+
+    public List<ProjectResponseDTO> getProjectsPendingApproval(Long supervisorId) {
+        return projectRepository.findBySupervisorIdAndApprovalStatus(supervisorId, Project.ApprovalStatus.PENDING)
+                .stream()
+                .map(projectMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<ProjectResponseDTO> getProjectsByApprovalStatus(Project.ApprovalStatus status) {
+        return projectRepository.findByApprovalStatus(status)
+                .stream()
+                .map(projectMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<ProjectResponseDTO> getProjectsWithoutSupervisor() {
+        return projectRepository.findBySupervisorIsNullAndApprovalStatus(Project.ApprovalStatus.PENDING)
+                .stream()
+                .map(projectMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public ProjectResponseDTO assignSupervisor(Long projectId, Long supervisorId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException("Project with ID " + projectId + " not found"));
+        
+        User supervisor = userRepository.findById(supervisorId)
+                .orElseThrow(() -> new EntityNotFoundException("Supervisor with ID " + supervisorId + " not found"));
+        
+        project.setSupervisor(supervisor);
+        
+        Project savedProject = projectRepository.save(project);
+        return projectMapper.toDTO(savedProject);
+    }
+
+    @Transactional
+    public void deleteProject(Long projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException("Project with ID " + projectId + " not found"));
+        
+        projectRepository.delete(project);
     }
 }

@@ -6,7 +6,5 @@ import lombok.Setter;
 @Setter
 @Getter
 public class Choice {
-    // Getters and setters
     private Message message;
-
 }

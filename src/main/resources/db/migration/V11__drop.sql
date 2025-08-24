@@ -1,0 +1,1 @@
+ALTER TABLE projects DROP CONSTRAINT projects_student_year_check
