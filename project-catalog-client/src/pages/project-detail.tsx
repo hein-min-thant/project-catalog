@@ -1,24 +1,17 @@
+// ProjectDetailPage.tsx
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Spinner } from "@heroui/react";
 import { Icon } from "@iconify/react";
+import { format } from "date-fns";
 import { useState } from "react";
+
+// Snow.css stays – it auto-inherits the new palette
+import "react-quill/dist/quill.snow.css";
 
 import { Project } from "./projects";
 
-import "react-quill/dist/quill.snow.css";
-import { Separator } from "@/components/ui/separator";
 import api from "@/config/api";
 import DefaultLayout from "@/layouts/default";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import ChatApp from "@/components/Chat";
 import { ReactionButton } from "@/components/ReactionButton";
 import { CommentSection } from "@/components/CommentSection";
@@ -28,156 +21,146 @@ interface MemberDTO {
   rollNumber?: string;
 }
 
+/* ---------------------------------------------------------- */
+/*  Helper                                                    */
+/* ---------------------------------------------------------- */
+const DetailBlock: React.FC<{
+  title: string;
+  icon: string;
+  children?: React.ReactNode;
+}> = ({ title, icon, children }) => (
+  <div>
+    <h3 className="flex items-center gap-2 text-lg font-semibold mb-2">
+      <Icon className="text-cyan-500" icon={icon} />
+      {title}
+    </h3>
+    <div className="text-sm text-slate-600 dark:text-slate-400">{children}</div>
+  </div>
+);
+
+/* ---------------------------------------------------------- */
+/*  Page                                                      */
+/* ---------------------------------------------------------- */
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isChatOpen, setIsChatOpen] = useState(false);
 
-  // Fetch project data
+  /* ---------- Queries ---------- */
   const {
     data: project,
     isLoading,
     isError,
   } = useQuery({
     queryKey: ["project", id],
-    queryFn: async () => {
-      const { data } = await api.get(`/projects/${id}`);
-
-      return data as Project;
-    },
+    queryFn: async () => (await api.get(`/projects/${id}`)).data as Project,
   });
-
-  const { data: currentUser, isLoading: isUserLoading } = useQuery({
+  const { data: currentUser } = useQuery({
     queryKey: ["currentUser"],
-    queryFn: async () => {
-      const { data } = await api.get("/users/me");
-
-      return data;
-    },
+    queryFn: async () => (await api.get("/users/me")).data,
   });
-
   const { data: categoryName } = useQuery({
     queryKey: ["categoryName"],
-    queryFn: async () => {
-      const { data } = await api.get(`/category/${project?.categoryId}`);
-
-      return data;
-    },
+    queryFn: async () =>
+      (await api.get(`/category/${project?.categoryId}`)).data,
     enabled: !!project?.categoryId,
   });
-
-  // Fetch saved status
-  const { data: isSaved, isLoading: isSavingStatusLoading } = useQuery({
+  const { data: isSaved } = useQuery({
     queryKey: ["isProjectSaved", id, currentUser?.id],
     queryFn: async () => {
       if (!id || !currentUser?.id) return false;
-      const { data } = await api.get(
-        `/saved-projects/check?projectId=${id}&userId=${currentUser.id}`
-      );
 
-      return data;
+      return (
+        await api.get(
+          `/saved-projects/check?projectId=${id}&userId=${currentUser.id}`
+        )
+      ).data;
     },
     enabled: !!id && !!currentUser?.id,
   });
 
-  // Mutations for saving and unsaving
+  /* ---------- Mutations ---------- */
   const saveMutation = useMutation({
     mutationFn: (dto: { projectId: number; userId: number }) =>
       api.post("/saved-projects", dto),
-    onSuccess: () => {
+    onSuccess: () =>
       queryClient.invalidateQueries({
         queryKey: ["isProjectSaved", id, currentUser?.id],
-      });
-    },
+      }),
   });
-
   const unsaveMutation = useMutation({
     mutationFn: (dto: { projectId: number; userId: number }) =>
-      api.delete(
-        `/saved-projects?projectId=${dto.projectId}&userId=${dto.userId}`
-      ),
-    onSuccess: () => {
+      api.delete(`/saved-projects`, { params: dto }),
+    onSuccess: () =>
       queryClient.invalidateQueries({
         queryKey: ["isProjectSaved", id, currentUser?.id],
-      });
-    },
+      }),
   });
 
   const members = project?.membersJson
     ? (JSON.parse(project.membersJson) as MemberDTO[])
     : [];
+  const canEdit = currentUser && project?.userId === currentUser.id;
 
-  const handleEditClick = () => {
-    navigate(`/projects/${project?.id}/edit`);
+  /* ---------- Handlers ---------- */
+  const handleSave = () => {
+    if (!project || !currentUser) return;
+    const dto = { projectId: project.id, userId: currentUser.id };
+
+    isSaved ? unsaveMutation.mutate(dto) : saveMutation.mutate(dto);
   };
 
-  const handleSaveClick = () => {
-    if (project && currentUser) {
-      const dto = { projectId: project.id, userId: currentUser.id };
-
-      if (isSaved) {
-        unsaveMutation.mutate(dto);
-      } else {
-        saveMutation.mutate(dto);
-      }
-    }
-  };
-
-  if (isLoading || isSavingStatusLoading || isUserLoading) {
+  /* ---------- Loading / 404 ---------- */
+  if (isLoading)
     return (
       <DefaultLayout>
-        <div className="flex justify-center items-center h-screen">
-          <Spinner label="Loading project..." size="lg" />
+        <div className="flex h-screen items-center justify-center">
+          <Icon
+            className="h-10 w-10 text-cyan-500"
+            icon="svg-spinners:90-ring-with-bg"
+          />
         </div>
       </DefaultLayout>
     );
-  }
-
-  if (isError || !project) {
+  if (isError || !project)
     return (
       <DefaultLayout>
-        <div className="flex-1 flex items-center justify-center p-4 md:p-8">
-          <Card className="text-center p-8 bg-card text-foreground">
-            <CardHeader>
-              <CardTitle>Failed to load project</CardTitle>
-              <CardDescription>
-                The project could not be found or an error occurred.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button
-                className="mt-4"
-                color="primary"
-                onClick={() => navigate("/projects")}
-              >
-                Back to Projects
-              </Button>
-            </CardContent>
-          </Card>
+        <div className="flex h-screen items-center justify-center">
+          <div className="bg-glass rounded-2xl p-8 text-center shadow-lg">
+            <h2 className="text-xl font-bold mb-2">Project not found</h2>
+            <button
+              className="mt-4 rounded-lg bg-cyan-500 px-4 py-2 text-white"
+              onClick={() => navigate("/projects")}
+            >
+              Back to Projects
+            </button>
+          </div>
         </div>
       </DefaultLayout>
     );
-  }
 
-  const canEdit = currentUser && project.userId === currentUser.id;
-
+  /* ---------- Render ---------- */
   return (
     <DefaultLayout>
-      <div className="relative flex flex-col lg:flex-row h-screen">
-        {/* Main content area */}
-        <div
-          className={`flex-1 overflow-y-auto p-4 md:p-8 scrollbar-hide transition-all duration-300 ${isChatOpen ? "lg:pr-[24rem]" : ""}`}
+      <div className="relative min-h-screen bg-background">
+        {/* Main */}
+        <main
+          className={`flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 transition-[padding] duration-300 ${
+            isChatOpen ? "lg:pr-[25rem]" : ""
+          }`}
         >
-          <div className="container mx-auto max-w-4xl pb-16">
-            <header className="mb-8">
-              <div className="flex justify-between items-start mb-4">
+          <div className="mx-auto max-w-5xl space-y-10">
+            {/* Header */}
+            <header className="space-y-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                 <div>
-                  <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                    {project.title}
-                  </h1>
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-                    <Badge variant={"default"}>{categoryName}</Badge>
+                  <div className="flex flex-wrap items-center gap-3 mb-2">
+                    {categoryName && (
+                      <span className="rounded-full px-3 py-1 text-xs font-semibold bg-cyan-100 text-cyan-900 dark:bg-cyan-900/30 dark:text-cyan-300">
+                        {categoryName}
+                      </span>
+                    )}
                     {project.academic_year && (
                       <span className="text-sm text-muted-foreground">
                         {project.academic_year}
@@ -188,39 +171,37 @@ export default function ProjectDetailPage() {
                         {project.student_year}
                       </span>
                     )}
-                    {project.approvalStatus && (
-                      <Badge
-                        variant={
-                          project.approvalStatus === "APPROVED"
-                            ? "default"
-                            : project.approvalStatus === "REJECTED"
-                            ? "destructive"
-                            : "secondary"
-                        }
-                      >
-                        {project.approvalStatus}
-                      </Badge>
-                    )}
                   </div>
+                  <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground">
+                    {project.title}
+                  </h1>
                 </div>
-                <div className="flex items-center gap-2">
+
+                <div className="flex items-center gap-3">
                   {canEdit && (
-                    <Button onClick={handleEditClick}>
-                      <Icon className="mr-2" icon="mdi:pencil" />
+                    <button
+                      className="flex items-center gap-2 rounded-xl bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/80"
+                      onClick={() => navigate(`/projects/${project.id}/edit`)}
+                    >
+                      <Icon icon="mdi:pencil" />
                       Edit
-                    </Button>
+                    </button>
                   )}
                   {currentUser && (
-                    <Button
-                      variant={isSaved ? "default" : "outline"}
-                      onClick={handleSaveClick}
+                    <button
+                      className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition
+                        ${
+                          isSaved
+                            ? "bg-cyan-500 text-white hover:bg-cyan-600"
+                            : "border border-cyan-500 text-cyan-500 hover:bg-cyan-50 dark:border-cyan-400 dark:text-cyan-400 dark:hover:bg-cyan-900/30"
+                        }`}
+                      onClick={handleSave}
                     >
                       <Icon
-                        className="mr-2 text-amber-300"
                         icon={isSaved ? "mdi:bookmark" : "mdi:bookmark-outline"}
                       />
                       {isSaved ? "Unsave" : "Save"}
-                    </Button>
+                    </button>
                   )}
                   {currentUser && (
                     <ReactionButton
@@ -230,41 +211,47 @@ export default function ProjectDetailPage() {
                   )}
                 </div>
               </div>
+
               {project.description && (
-                <p className="text-lg text-muted-foreground mb-6">
+                <p className="text-lg text-muted-foreground border-l-4 border-cyan-500 pl-4">
                   {project.description}
                 </p>
               )}
             </header>
-            {/* Project Details section refactored to two-column layout */}
-            <section className="mb-12 space-y-8">
-              <h2 className="text-2xl font-bold">Project Details</h2>
-              <div className="grid md:grid-cols-2 gap-x-12 gap-y-6">
+
+            {/* Details card */}
+            <section className="bg-glass rounded-2xl py-6 px-10 shadow-lg">
+              <h2 className="text-2xl font-bold mb-3">Core Details</h2>
+              <hr />
+              <div className="grid md:grid-cols-2 mt-3 gap-x-8 gap-y-6">
                 <div className="space-y-6">
                   {project.objectives && (
-                    <div>
-                      <h3 className="text-xl font-semibold mb-2">Objectives</h3>
-                      <p>{project.objectives}</p>
-                    </div>
+                    <DetailBlock icon="mdi:target" title="Objectives">
+                      <p className="text-[16px]">{project.objectives}</p>
+                    </DetailBlock>
                   )}
                   {project.benefits && (
-                    <div>
-                      <h3 className="text-xl font-semibold mb-2">Benefits</h3>
-                      <p>{project.benefits}</p>
-                    </div>
+                    <DetailBlock icon="mdi:trophy-variant" title="Benefits">
+                      <p className="text-[16px]">{project.benefits}</p>
+                    </DetailBlock>
                   )}
                   {project.tags && project.tags.length > 0 && (
                     <div>
-                      <h3 className="text-xl font-semibold mb-2">Tags</h3>
+                      <h3 className="flex items-center gap-2 text-lg font-semibold mb-2">
+                        <Icon
+                          className="text-cyan-500"
+                          icon="mdi:tag-multiple"
+                        />
+                        Tags
+                      </h3>
                       <div className="flex flex-wrap gap-2">
-                        {project.tags.map((tag, index) => (
-                          <Badge
+                        {project.tags.map((t, index) => (
+                          <span
                             key={index}
-                            className="text-sm"
-                            variant="secondary"
+                            className="rounded-full px-3 py-1 text-sm font-medium bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-200"
                           >
-                            {tag}
-                          </Badge>
+                            {t}
+                          </span>
                         ))}
                       </div>
                     </div>
@@ -273,149 +260,129 @@ export default function ProjectDetailPage() {
 
                 <div className="space-y-6">
                   {project.approvalStatus && (
-                    <div>
-                      <h3 className="text-xl font-semibold mb-2">Approval Status</h3>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant={
+                    <DetailBlock icon="mdi:check-decagram" title="Approval">
+                      <div className="space-y-1">
+                        <span
+                          className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-bold
+                            ${
                               project.approvalStatus === "APPROVED"
-                                ? "default"
+                                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
                                 : project.approvalStatus === "REJECTED"
-                                ? "destructive"
-                                : "secondary"
-                            }
-                          >
-                            {project.approvalStatus}
-                          </Badge>
-                        </div>
+                                  ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
+                                  : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+                            }`}
+                        >
+                          {project.approvalStatus}
+                        </span>
                         {project.supervisorName && (
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-[16px]">
                             Supervisor: {project.supervisorName}
                           </p>
                         )}
                         {project.approvedAt && (
-                          <p className="text-sm text-muted-foreground">
-                            {project.approvalStatus === "APPROVED" ? "Approved" : "Rejected"} on: {new Date(project.approvedAt).toLocaleDateString()}
-                          </p>
-                        )}
-                        {project.approvedByName && (
-                          <p className="text-sm text-muted-foreground">
-                            {project.approvalStatus === "APPROVED" ? "Approved" : "Rejected"} by: {project.approvedByName}
+                          <p className="text-[16px]">
+                            {format(
+                              new Date(project.approvedAt),
+                              "MMM d, yyyy"
+                            )}
                           </p>
                         )}
                       </div>
-                    </div>
+                    </DetailBlock>
                   )}
+
                   {project.githubLink && (
-                    <div>
-                      <h3 className="text-xl font-semibold mb-2">
-                        GitHub Repository
-                      </h3>
+                    <DetailBlock icon="mdi:github" title="Source">
                       <a
-                        className="hover:underline flex items-center gap-2"
+                        className="inline-flex items-center gap-1 text-cyan-500 hover:underline text-[16px]"
                         href={project.githubLink}
                         rel="noopener noreferrer"
                         target="_blank"
                       >
-                        <Icon className="text-xl" icon="mdi:github" />
-                        <span>View on GitHub</span>
+                        View on GitHub
                       </a>
-                    </div>
+                    </DetailBlock>
                   )}
+
                   {project.projectFiles && project.projectFiles.length > 0 && (
-                    <div>
-                      <h3 className="text-xl font-semibold mb-2">
-                        Project File
-                      </h3>
-                      <ul className="space-y-2">
-                        {project.projectFiles.map((file, index) => (
-                          <li
-                            key={index}
-                            className="flex items-center gap-2 underline underline-offset-2"
-                          >
-                            <Icon
-                              className="text-muted-foreground text-lg"
-                              icon="mdi:file"
-                            />
+                    <DetailBlock icon="mdi:file-download" title="Files">
+                      <ul className="space-y-1">
+                        {project.projectFiles.map((url, i) => (
+                          <li key={i}>
                             <a
-                              className=""
-                              href={file}
-                              rel="noreferrer noopener"
+                              className="text-cyan-500 hover:underline text-[16px]"
+                              href={url}
+                              rel="noopener noreferrer"
                               target="_blank"
                             >
-                              Download File
+                              Download file {i + 1}
                             </a>
                           </li>
                         ))}
                       </ul>
-                    </div>
+                    </DetailBlock>
                   )}
+
                   {members.length > 0 && (
-                    <div>
-                      <h3 className="text-xl font-semibold mb-2">
-                        Team Members
-                      </h3>
-                      <ul className="space-y-2">
-                        {members.map((member, index) => (
-                          <li key={index} className="flex items-center gap-2">
-                            <Icon
-                              className="text-muted-foreground"
-                              icon="mdi:account"
-                            />
-                            <span className="font-medium">{member.name}</span>
-                            {member.rollNumber && (
-                              <span className="text-muted-foreground">
-                                ({member.rollNumber})
+                    <DetailBlock icon="mdi:account-group" title="Team">
+                      <ul className="space-y-1 text-[16px]">
+                        {members.map((m) => (
+                          <li key={m.name}>
+                            {m.name}
+                            {m.rollNumber && (
+                              <span className="ml-2 text-sm text-muted-foreground text-[16px]">
+                                ({m.rollNumber})
                               </span>
                             )}
                           </li>
                         ))}
                       </ul>
-                    </div>
+                    </DetailBlock>
                   )}
                 </div>
               </div>
             </section>
-            <Separator className="my-12" />
-            <article className="ql-container border-none p-0">
+
+            {/* Report card */}
+            <section className="bg-glass rounded-2xl py-6 shadow-lg px-10">
+              <h2 className="text-2xl font-bold mb-3">Detailed Report</h2>
+              <hr />
               <div
                 dangerouslySetInnerHTML={{ __html: project.body || "" }}
-                className="ql-editor prose dark:prose-invert max-w-none font-sans text-lg"
+                className="ql-editor mt-3 prose dark:prose-invert max-w-none text-lg"
               />
-            </article>
-            <Separator className="my-12" />
-            <CommentSection
-              currentUserId={currentUser.id}
-              projectId={project.id}
-            />
-          </div>
-        </div>
+            </section>
 
-        {/* Chat Toggle Button (only visible when chat is closed) */}
+            {/* Comments */}
+            {currentUser && (
+              <CommentSection
+                currentUserId={currentUser.id}
+                projectId={project.id}
+              />
+            )}
+          </div>
+        </main>
+
+        {/* Chat drawer */}
         {!isChatOpen && (
-          <Button
-            className="fixed bottom-8 right-8 z-50 p-3 rounded-full shadow-lg"
-            color="primary"
+          <button
+            className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-cyan-500 text-white shadow-xl transition-transform hover:scale-110"
             onClick={() => setIsChatOpen(true)}
           >
-            <Icon className="text-2xl" icon="mdi:chat" />
-          </Button>
+            <Icon className="h-6 w-6" icon="mdi:chat" />
+          </button>
         )}
-
-        {/* Chat Column */}
         <aside
-          className={`fixed right-0 top-0 w-full lg:w-96 flex-shrink-0 border-l bg-slate-50 border-gray-200 h-screen transition-transform duration-300 ease-in-out z-40
-          ${isChatOpen ? "translate-x-0" : "translate-x-full"}`}
+          className={`fixed right-0 top-0 z-40 h-full w-full border-l bg-glass shadow-2xl backdrop-blur-md lg:w-96
+            transition-transform duration-300
+            ${isChatOpen ? "translate-x-0" : "translate-x-full"}`}
         >
-          <div className="h-full">
-            <ChatApp
-              projectContent={
-                project.title + project.excerpt + project.objectives
-              }
-              onClose={() => setIsChatOpen(false)}
-            />
-          </div>
+          <ChatApp
+            projectContent={
+              project.title + project.excerpt + project.objectives
+            }
+            onClose={() => setIsChatOpen(false)}
+          />
         </aside>
       </div>
     </DefaultLayout>

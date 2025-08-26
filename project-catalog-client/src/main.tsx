@@ -7,17 +7,20 @@ import App from "./App.tsx";
 import { Provider } from "./provider.tsx";
 
 import "@/styles/globals.css";
+import { NotificationProvider } from "./hooks/useNotifications.tsx";
 
 const queryClient = new QueryClient();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <Provider>
-        <QueryClientProvider client={queryClient}>
-          <App />
-        </QueryClientProvider>
-      </Provider>
-    </BrowserRouter>
+    <NotificationProvider>
+      <BrowserRouter>
+        <Provider>
+          <QueryClientProvider client={queryClient}>
+            <App />
+          </QueryClientProvider>
+        </Provider>
+      </BrowserRouter>
+    </NotificationProvider>
   </React.StrictMode>
 );

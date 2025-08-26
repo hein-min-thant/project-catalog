@@ -1,29 +1,23 @@
-// src/components/CommentSection.tsx
+// CommentSection.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Icon } from "@iconify/react";
 
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import api from "@/config/api";
 
 interface Comment {
   id: number;
-  userId: number; // Only userId is available from the API
+  userId: number;
   comment: string;
   createdAt: string;
 }
-
 interface UserProfile {
   id: number;
   name: string;
   avatarUrl?: string;
 }
-
 interface CommentSectionProps {
   projectId: number;
   currentUserId: number;
@@ -37,45 +31,38 @@ export const CommentSection = ({
   const [newComment, setNewComment] = useState("");
   const [users, setUsers] = useState<Map<number, UserProfile>>(new Map());
 
+  /* ---------- Queries ---------- */
   const { data: comments, isLoading } = useQuery<Comment[]>({
     queryKey: ["projectComments", projectId],
-    queryFn: async () => {
-      const { data } = await api.get(`/comments/project/${projectId}`);
-
-      return data;
-    },
+    queryFn: async () => (await api.get(`/comments/project/${projectId}`)).data,
     enabled: !!projectId,
   });
 
-  // Fetch user data for each comment
   useEffect(() => {
     if (comments) {
-      const userIdsToFetch = Array.from(
-        new Set(comments.map((c) => c.userId))
-      ).filter((id) => !users.has(id));
+      const ids = Array.from(new Set(comments.map((c) => c.userId))).filter(
+        (id) => !users.has(id)
+      );
 
-      userIdsToFetch.forEach(async (id) => {
+      ids.forEach(async (id) => {
         try {
           const { data } = await api.get(`/users/${id}`);
 
           setUsers((prev) => new Map(prev).set(id, data));
-        } catch (error) {
-          console.error(`Failed to fetch user ${id}`, error);
+        } catch (e) {
+          console.error(e);
         }
       });
     }
   }, [comments, users]);
 
   const addCommentMutation = useMutation({
-    mutationFn: async (commentText: string) => {
-      const { data } = await api.post("/comments", {
+    mutationFn: (text: string) =>
+      api.post("/comments", {
         projectId,
         userId: currentUserId,
-        comment: commentText,
-      });
-
-      return data;
-    },
+        comment: text,
+      }),
     onSuccess: () => {
       setNewComment("");
       queryClient.invalidateQueries({
@@ -83,107 +70,111 @@ export const CommentSection = ({
       });
     },
   });
-
   const deleteCommentMutation = useMutation({
-    mutationFn: async (commentId: number) => {
-      await api.delete(`/comments/${commentId}`, {
+    mutationFn: (commentId: number) =>
+      api.delete(`/comments/${commentId}`, {
         params: { userId: currentUserId },
-      });
-    },
-    onSuccess: () => {
+      }),
+    onSuccess: () =>
       queryClient.invalidateQueries({
         queryKey: ["projectComments", projectId],
-      });
-    },
+      }),
   });
 
-  const handleAddComment = (e: React.FormEvent) => {
+  const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newComment.trim()) {
-      addCommentMutation.mutate(newComment);
-    }
+    if (newComment.trim()) addCommentMutation.mutate(newComment);
   };
+  const handleDelete = (id: number) => deleteCommentMutation.mutate(id);
 
-  const handleDeleteComment = (commentId: number) => {
-    deleteCommentMutation.mutate(commentId);
-  };
-
+  /* ---------- Render ---------- */
   return (
-    <Card className="mt-8">
-      <CardHeader>
-        <CardTitle>Comments ({comments?.length || 0})</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Improved Comment Form Alignment */}
-        <form className="flex items-start gap-2" onSubmit={handleAddComment}>
-          <Textarea
-            className="flex-1"
+    <section className="mt-10">
+      <h2 className="text-2xl font-bold mb-5">
+        Comments ({comments?.length || 0})
+      </h2>
+
+      {/* Add comment */}
+      <form
+        className="bg-glass rounded-2xl p-4 flex items-start gap-3 shadow-md"
+        onSubmit={handleAdd}
+      >
+        <img
+          alt="You"
+          className="h-10 w-10 flex-shrink-0 rounded-full object-cover"
+          src={users.get(currentUserId)?.avatarUrl || "/default-avatar.png"}
+        />
+        <div className="flex-1 flex flex-col gap-2">
+          <textarea
+            className="w-full resize-none rounded-lg border border-border bg-transparent px-3 py-2 text-sm text-foreground placeholder-muted-foreground focus:border-cyan-500 focus:outline-none"
             disabled={addCommentMutation.isPending}
-            placeholder="Add a comment..."
+            placeholder="Write a comment…"
             rows={2}
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
           />
-          <Button
-            className="self-end"
-            disabled={addCommentMutation.isPending}
-            type="submit"
-          >
-            Post
-          </Button>
-        </form>
-
-        <div className="space-y-6 mt-6">
-          {isLoading ? (
-            <p className="text-center text-gray-500">Loading comments...</p>
-          ) : (
-            comments?.map((comment) => {
-              const user = users.get(comment.userId);
-
-              return (
-                <div key={comment.id} className="flex gap-4 items-start">
-                  <Avatar className="h-9 w-9">
-                    <AvatarImage alt={user?.name} src={user?.avatarUrl} />
-                    <AvatarFallback className="bg-muted text-foreground">
-                      {user?.name.charAt(0).toUpperCase() || "..."}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold">
-                          {user?.name || "Unknown User"}
-                        </span>
-                        {/* Improved Delete Button */}
-                        {currentUserId === comment.userId && (
-                          <Button
-                            className="w-6 h-6 rounded-full text-gray-500 hover:text-red-500"
-                            disabled={deleteCommentMutation.isPending}
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => handleDeleteComment(comment.id)}
-                          >
-                            <Icon
-                              className="text-base"
-                              icon="mdi:delete-outline"
-                            />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-700 dark:text-gray-400">
-                      {comment.comment}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {new Date(comment.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              );
-            })
-          )}
+          <div className="flex justify-end">
+            <button
+              className="rounded-lg bg-cyan-500 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-cyan-600 disabled:opacity-60"
+              disabled={addCommentMutation.isPending}
+              type="submit"
+            >
+              Post
+            </button>
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      </form>
+
+      {/* Comments list */}
+      <div className="mt-6 space-y-6">
+        {isLoading && (
+          <p className="text-center text-sm text-muted-foreground">
+            Loading comments…
+          </p>
+        )}
+        {comments?.map((c) => {
+          const user = users.get(c.userId);
+
+          return (
+            <div
+              key={c.id}
+              className="bg-glass rounded-2xl p-4 flex items-start gap-3 shadow-md"
+            >
+              <img
+                alt={user?.name || "?"}
+                className="h-10 w-10 flex-shrink-0 rounded-full object-cover"
+                src={
+                  user?.avatarUrl ||
+                  "https://static.vecteezy.com/system/resources/thumbnails/021/548/095/small/default-profile-picture-avatar-user-avatar-icon-person-icon-head-icon-profile-picture-icons-default-anonymous-user-male-and-female-businessman-photo-placeholder-social-network-avatar-portrait-free-vector.jpg"
+                }
+              />
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-sm text-foreground">
+                    {user?.name || "Unknown"}
+                  </span>
+                  {c.userId === currentUserId && (
+                    <button
+                      className="rounded-full p-1 text-muted-foreground transition hover:bg-red-100 hover:text-red-500 dark:hover:bg-red-900/40"
+                      disabled={deleteCommentMutation.isPending}
+                      type="button"
+                      onClick={() => handleDelete(c.id)}
+                    >
+                      <Icon className="h-4 w-4" icon="mdi:delete-outline" />
+                    </button>
+                  )}
+                </div>
+                <p className="mt-1 text-sm leading-relaxed text-foreground/90">
+                  {c.comment}
+                </p>
+                <time className="mt-1 block text-xs text-muted-foreground">
+                  {new Date(c.createdAt).toLocaleDateString()}
+                </time>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 };

@@ -207,6 +207,7 @@ public class ProjectService {
             Optional<String> academicYear,
             Optional<String> studentYear,
             Optional<String> name,
+            Optional<String> supervisor,
             Optional<String> members,
             int page,
             int size,
@@ -216,7 +217,7 @@ public class ProjectService {
         Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Specification<Project> spec = new ProjectSpecification(keyword, categoryId, tags, academicYear,studentYear,name, members);
+        Specification<Project> spec = new ProjectSpecification(keyword, categoryId, tags, academicYear,studentYear,name, supervisor, members);
 
         return projectRepository.findAll(spec, pageable).map(projectMapper::toDTO);
     }
@@ -228,6 +229,7 @@ public class ProjectService {
             Optional<String> academicYear,
             Optional<String> studentYear,
             Optional<String> name,
+            Optional<String> supervisor,
             Optional<String> members,
             int page,
             int size,
@@ -237,7 +239,7 @@ public class ProjectService {
         Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Specification<Project> spec = new ProjectSpecification(keyword, categoryId, tags, academicYear,studentYear,name, members)
+        Specification<Project> spec = new ProjectSpecification(keyword, categoryId, tags, academicYear,studentYear,name, supervisor, members)
                 .and((root, query, criteriaBuilder) -> 
                     criteriaBuilder.equal(root.get("approvalStatus"), Project.ApprovalStatus.APPROVED));
 
@@ -252,6 +254,7 @@ public class ProjectService {
         private final Optional<String> academicYear;
         private final Optional<String> studentYear;
         private final Optional<String> name;
+        private final Optional<String> supervisor;
         private final Optional<String> members;
 
         @Override
@@ -289,6 +292,12 @@ public class ProjectService {
             name.ifPresent(n -> {
                 Join<Project, User> userJoin = root.join("user", JoinType.LEFT);
                 predicates.add(criteriaBuilder.equal(userJoin.get("name"), n));
+            });
+
+            supervisor.ifPresent(sup -> {
+                Join<Project, User> supervisorJoin = root.join("supervisor", JoinType.LEFT);
+                String likeSupervisor = "%" + sup.toLowerCase() + "%";
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(supervisorJoin.get("name")), likeSupervisor));
             });
 
 

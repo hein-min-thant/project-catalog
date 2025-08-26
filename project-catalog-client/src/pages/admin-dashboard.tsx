@@ -52,7 +52,7 @@ export default function AdminDashboardPage() {
     },
   });
 
-    console.table(currentUser);
+  console.table(currentUser);
   // Fetch all users
   const {
     data: usersData,
@@ -179,74 +179,75 @@ export default function AdminDashboardPage() {
   }
 
   return (
+    // AdminDashboardPage.tsx  (replace only the JSX markup)
+    // ...imports & logic remain exactly the same
     <DefaultLayout>
-      <div className="container mx-auto p-4 md:p-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Manage users, projects, and system settings
+      <div className="container mx-auto px-4 py-8">
+        <header className="mb-8 text-center lg:text-left">
+          <h1 className="text-3xl font-bold text-cyan-500">Admin Dashboard</h1>
+          <p className="text-muted-foreground mt-2">
+            Manage users, projects, and roles
           </p>
-        </div>
+        </header>
 
-        <Tabs className="space-y-6" defaultValue="users">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="users">
+          <TabsList className="grid w-full max-w-md mx-auto lg:mx-0 grid-cols-3">
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="projects">Projects</TabsTrigger>
-            <TabsTrigger value="roles">Role Management</TabsTrigger>
+            <TabsTrigger value="roles">Roles</TabsTrigger>
           </TabsList>
 
-          {/* Users Tab */}
-          <TabsContent className="space-y-6" value="users">
-            <Card>
+          <TabsContent className="mt-6" value="users">
+            <Card className="bg-card/60 backdrop-blur-md border-border">
               <CardHeader>
-                <CardTitle>All Users</CardTitle>
+                <CardTitle>Users</CardTitle>
                 <CardDescription>
-                  Manage user accounts and permissions
+                  Manage accounts and permissions
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {usersLoading ? (
-                  <div className="flex justify-center items-center h-32">
+                  <div className="flex justify-center py-8">
                     <Spinner size="lg" />
                   </div>
                 ) : usersError ? (
-                  <div className="text-center text-red-500">
+                  <p className="text-red-500 text-center">
                     Failed to load users.
-                  </div>
+                  </p>
                 ) : (
                   <div className="space-y-4">
                     {usersData?.content?.map((user: User) => (
                       <div
                         key={user.id}
-                        className="flex items-center justify-between p-4 border rounded-lg"
+                        className="flex items-center justify-between p-4 rounded-xl bg-background/50 border-border"
                       >
-                        <div className="flex items-center space-x-4">
-                          <div>
-                            <p className="font-medium">{user.name}</p>
-                            <p className="text-sm text-gray-500">
-                              {user.email}
-                            </p>
-                            <Badge variant="outline">{user.role}</Badge>
-                          </div>
+                        <div>
+                          <p className="font-semibold">{user.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {user.email}
+                          </p>
+                          <Badge className="mt-1" variant="default">
+                            {user.role}
+                          </Badge>
                         </div>
-                        <div className="flex space-x-2">
+                        <div className="flex gap-2">
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => handleUpdateRole(user)}
                           >
                             <Icon
-                              className="w-4 h-4 mr-2"
+                              className="w-4 h-4 mr-1"
                               icon="mdi:account-cog"
                             />
-                            Change Role
+                            Role
                           </Button>
                           <Button
                             size="sm"
                             variant="destructive"
                             onClick={() => handleDeleteUser(user)}
                           >
-                            <Icon className="w-4 h-4 mr-2" icon="mdi:delete" />
+                            <Icon className="w-4 h-4 mr-1" icon="mdi:delete" />
                             Delete
                           </Button>
                         </div>
@@ -258,52 +259,45 @@ export default function AdminDashboardPage() {
             </Card>
           </TabsContent>
 
-          {/* Projects Tab */}
-          <TabsContent className="space-y-6" value="projects">
-            <Card>
+          <TabsContent className="mt-6" value="projects">
+            <Card className="bg-card/60 backdrop-blur-md border-border">
               <CardHeader>
-                <CardTitle>All Projects</CardTitle>
-                <CardDescription>
-                  View and manage all projects in the system
-                </CardDescription>
+                <CardTitle>Projects</CardTitle>
+                <CardDescription>Manage all projects</CardDescription>
               </CardHeader>
               <CardContent>
                 {projectsLoading ? (
-                  <div className="flex justify-center items-center h-32">
+                  <div className="flex justify-center py-8">
                     <Spinner size="lg" />
                   </div>
                 ) : projectsError ? (
-                  <div className="text-center text-red-500">
+                  <p className="text-red-500 text-center">
                     Failed to load projects.
-                  </div>
+                  </p>
                 ) : (
                   <div className="space-y-4">
                     {projectsData?.content?.map((project: Project) => (
                       <div
                         key={project.id}
-                        className="flex items-center justify-between p-4 border rounded-lg"
+                        className="flex items-center justify-between p-4 rounded-xl bg-background/50 border-border"
                       >
-                        <div className="flex-1">
-                          <h3 className="font-medium">{project.title}</h3>
-                          <p className="text-sm text-gray-500 line-clamp-2">
+                        <div>
+                          <p className="font-semibold">{project.title}</p>
+                          <p className="text-sm text-muted-foreground line-clamp-2">
                             {project.description}
                           </p>
-                          <div className="flex items-center space-x-2 mt-2">
-                            <Badge variant="outline">
-                              {project.approvalStatus}
-                            </Badge>
-                          </div>
+                          <Badge className="mt-1" variant="outline">
+                            {project.approvalStatus}
+                          </Badge>
                         </div>
-                        <div className="flex space-x-2">
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDeleteProject(project)}
-                          >
-                            <Icon className="w-4 h-4 mr-2" icon="mdi:delete" />
-                            Delete
-                          </Button>
-                        </div>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDeleteProject(project)}
+                        >
+                          <Icon className="w-4 h-4 mr-1" icon="mdi:delete" />
+                          Delete
+                        </Button>
                       </div>
                     ))}
                   </div>
@@ -311,70 +305,9 @@ export default function AdminDashboardPage() {
               </CardContent>
             </Card>
           </TabsContent>
-
-          {/* Role Management Tab */}
-          <TabsContent className="space-y-6" value="roles">
-            <Card>
-              <CardHeader>
-                <CardTitle>Role Management</CardTitle>
-                <CardDescription>Quick role assignment tools</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Supervisors</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-500 mb-4">
-                        Users with supervisor privileges
-                      </p>
-                      <Button className="w-full" variant="outline">
-                        <Icon
-                          className="w-4 h-4 mr-2"
-                          icon="mdi:account-supervisor"
-                        />
-                        Manage Supervisors
-                      </Button>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Admins</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-500 mb-4">
-                        Users with admin privileges
-                      </p>
-                      <Button className="w-full" variant="outline">
-                        <Icon className="w-4 h-4 mr-2" icon="mdi:account-key" />
-                        Manage Admins
-                      </Button>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Regular Users</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-500 mb-4">
-                        Standard user accounts
-                      </p>
-                      <Button className="w-full" variant="outline">
-                        <Icon className="w-4 h-4 mr-2" icon="mdi:account" />
-                        Manage Users
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
 
-        {/* Delete User Dialog */}
+        {/* Dialogs (unchanged) */}
         <Dialog
           open={isDeleteUserDialogOpen}
           onOpenChange={setIsDeleteUserDialogOpen}
@@ -384,7 +317,7 @@ export default function AdminDashboardPage() {
               <DialogTitle>Delete User</DialogTitle>
               <DialogDescription>
                 Are you sure you want to delete &quot;{selectedUser?.name}
-                &quot;? This action cannot be undone.
+                &quot;?
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
@@ -402,14 +335,13 @@ export default function AdminDashboardPage() {
                 {deleteUserMutation.isPending ? (
                   <Spinner size="sm" />
                 ) : (
-                  "Delete User"
+                  "Delete"
                 )}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
 
-        {/* Delete Project Dialog */}
         <Dialog
           open={isDeleteProjectDialogOpen}
           onOpenChange={setIsDeleteProjectDialogOpen}
@@ -419,7 +351,7 @@ export default function AdminDashboardPage() {
               <DialogTitle>Delete Project</DialogTitle>
               <DialogDescription>
                 Are you sure you want to delete &quot;{selectedProject?.title}
-                &quot;? This action cannot be undone.
+                &quot;?
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
@@ -437,34 +369,31 @@ export default function AdminDashboardPage() {
                 {deleteProjectMutation.isPending ? (
                   <Spinner size="sm" />
                 ) : (
-                  "Delete Project"
+                  "Delete"
                 )}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
 
-        {/* Update Role Dialog */}
         <Dialog open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Update User Role</DialogTitle>
+              <DialogTitle>Update Role</DialogTitle>
               <DialogDescription>
-                Change the role for &quot;{selectedUser?.name}&quot;
+                Choose a new role for {selectedUser?.name}
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              <Select value={selectedRole} onValueChange={setSelectedRole}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="USER">User</SelectItem>
-                  <SelectItem value="SUPERVISOR">Supervisor</SelectItem>
-                  <SelectItem value="ADMIN">Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <Select value={selectedRole} onValueChange={setSelectedRole}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="USER">User</SelectItem>
+                <SelectItem value="SUPERVISOR">Supervisor</SelectItem>
+                <SelectItem value="ADMIN">Admin</SelectItem>
+              </SelectContent>
+            </Select>
             <DialogFooter>
               <Button
                 variant="outline"
@@ -479,7 +408,7 @@ export default function AdminDashboardPage() {
                 {updateRoleMutation.isPending ? (
                   <Spinner size="sm" />
                 ) : (
-                  "Update Role"
+                  "Update"
                 )}
               </Button>
             </DialogFooter>

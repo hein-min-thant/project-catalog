@@ -305,8 +305,22 @@ const CreateProjectPage = () => {
         }
         .dark .ql-snow.ql-toolbar,
         .dark .ql-snow .ql-toolbar {
-          background-color: #18181b; /* dark:bg-zinc-600 */
-          color: white;
+          background-color : rgb(30, 41, 59 );
+        }
+        
+        .dark .ql-toolbar .ql-stroke {
+        stroke: white; /* Red color for icon strokes */
+    }
+        .dark .ql-toolbar .ql-fill{
+          fill : white;
+        }
+
+        .dark .ql-toolbar .ql-picker {
+          color : white;
+        }
+
+        .dark .ql-picker-options{
+        background-color : rgb(30, 41, 59);
         }
         .ql-container.ql-snow {
           border: none;
@@ -323,12 +337,12 @@ const CreateProjectPage = () => {
           border-radius: 0.5rem;
         }
       `}</style>
-      <div className="flex flex-col h-full bg-background dark:bg-zinc-950 p-6 md:p-10">
+      <div className="flex flex-col h-full bg-background p-6 md:p-10">
         <div className="container mx-auto max-w-7xl">
-          <h1 className="text-3xl font-bold mb-2 text-center text-gray-900 dark:text-gray-100">
+          <h1 className="text-3xl font-bold mb-2 text-center text-cyan-500">
             Create New Project
           </h1>
-          <p className="text-center text-gray-600 dark:text-gray-400 mb-8">
+          <p className="text-center mb-8">
             Fill in the details to add a new project to the catalog.
           </p>
           <form
@@ -337,9 +351,9 @@ const CreateProjectPage = () => {
           >
             {/* Left Column - General Info */}
             <div className="flex flex-col gap-6 lg:col-span-1">
-              <Card className="p-6 dark:bg-zinc-900 dark:border-zinc-700">
+              <Card className="p-6">
                 <CardHeader className="p-0 mb-4">
-                  <CardTitle className="text-xl font-bold">
+                  <CardTitle className="text-xl font-bold text-cyan-500">
                     General Information
                   </CardTitle>
                   <CardDescription>
@@ -393,9 +407,9 @@ const CreateProjectPage = () => {
                 </CardContent>
               </Card>
 
-              <Card className="p-6 dark:bg-zinc-900 dark:border-zinc-700">
+              <Card className="p-6">
                 <CardHeader className="p-0 mb-4">
-                  <CardTitle className="text-xl font-bold">
+                  <CardTitle className="text-xl font-bold text-cyan-500">
                     Project Details
                   </CardTitle>
                   <CardDescription>
@@ -501,9 +515,11 @@ const CreateProjectPage = () => {
                 </CardContent>
               </Card>
 
-              <Card className="p-6 dark:bg-zinc-900 dark:border-zinc-700">
+              <Card className="p-6 ">
                 <CardHeader className="p-0 mb-4">
-                  <CardTitle className="text-xl font-bold">Tags</CardTitle>
+                  <CardTitle className="text-xl font-bold text-cyan-500">
+                    Tags
+                  </CardTitle>
                   <CardDescription>
                     Add keywords related to the project. Press Enter to add a
                     tag.
@@ -530,7 +546,7 @@ const CreateProjectPage = () => {
                     {formData.tags.map((tag, index) => (
                       <div
                         key={index}
-                        className="flex items-center gap-1 bg-gray-200 dark:bg-zinc-700 dark:text-white rounded-full px-3 py-2 text-sm"
+                        className="flex items-center gap-1 dark:text-white bg-cyan-500 rounded-full px-3 py-2 text-sm"
                       >
                         {tag}
                         <Button
@@ -547,9 +563,9 @@ const CreateProjectPage = () => {
                 </CardContent>
               </Card>
 
-              <Card className="p-6 dark:bg-zinc-900 dark:border-zinc-700">
+              <Card className="p-6">
                 <CardHeader className="p-0 mb-4">
-                  <CardTitle className="text-xl font-bold">
+                  <CardTitle className="text-xl font-bold text-cyan-500">
                     Team Members
                   </CardTitle>
                   <CardDescription>
@@ -600,9 +616,9 @@ const CreateProjectPage = () => {
                 </CardContent>
               </Card>
 
-              <Card className="p-6 dark:bg-zinc-900 dark:border-zinc-700">
+              <Card className="p-6 ">
                 <CardHeader className="p-0 mb-4">
-                  <CardTitle className="text-xl font-bold">
+                  <CardTitle className="text-xl font-bold text-cyan-500">
                     Project Files
                   </CardTitle>
                   <CardDescription>
@@ -624,9 +640,9 @@ const CreateProjectPage = () => {
 
             {/* Right Column - Body/Quill Editor */}
             <div className="flex flex-col gap-6 lg:col-span-2">
-              <Card className="p-6 h-full flex flex-col dark:bg-zinc-900 dark:border-zinc-700">
+              <Card className="p-6 h-full flex flex-col ">
                 <CardHeader className="p-0 mb-4">
-                  <CardTitle className="text-xl font-bold">
+                  <CardTitle className="text-xl font-bold text-cyan-500">
                     Project Body
                   </CardTitle>
                   <CardDescription>
@@ -634,9 +650,9 @@ const CreateProjectPage = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1 p-0 flex flex-col">
-                  <div className="h-[700px] relative overflow-y-auto rounded-lg border dark:border-zinc-700">
+                  <div className="h-[700px] relative overflow-y-auto rounded-lg border hide-scrollbar">
                     <ReactQuill
-                      className="flex-1 min-h-[500px] mb-4 text-primary dark:text-primary"
+                      className="flex-1 min-h-[500px] mb-4"
                       modules={modules}
                       placeholder="Start writing the project details here..."
                       theme="snow"
@@ -668,7 +684,7 @@ const CreateProjectPage = () => {
                       <Spinner className="mr-2" size="sm" /> Creating...
                     </>
                   ) : (
-                    "Create Project"
+                    "Submit Project"
                   )}
                 </Button>
               </div>

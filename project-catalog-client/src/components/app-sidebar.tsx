@@ -1,17 +1,18 @@
+/* eslint-disable jsx-a11y/label-has-associated-control */
 // src/components/ProjectFilters.tsx
 import { useMemo } from "react";
-import {
-  Input,
-  Button,
-  Select,
-  SelectItem,
-  Card,
-  CardHeader,
-  CardBody,
-} from "@heroui/react";
 import { Icon } from "@iconify/react";
 
-// You may need to adjust the import path for Filters if it's in a different file
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Filters } from "@/pages/projects";
 
 interface ProjectFiltersProps {
@@ -25,8 +26,7 @@ export function ProjectFilters({
   onFilterChange,
   onClearFilters,
 }: ProjectFiltersProps) {
-  // Memoize filter options to prevent re-calculation on every render
-  const { academicYears, studentYears, categories, statuses } = useMemo(() => {
+  const { academicYears, studentYears, categories } = useMemo(() => {
     const years = [];
     const startYear = 2000;
     const currentYear = new Date().getFullYear();
@@ -49,88 +49,130 @@ export function ProjectFilters({
         { key: "1", label: "Web Development" },
         { key: "2", label: "Mobile App" },
       ],
-      statuses: [
-        { key: "completed", label: "Completed" },
-        { key: "in progress", label: "In Progress" },
-      ],
     };
   }, []);
 
   return (
-    <div className="w-full lg:w-1/3 xl:w-1/4">
-      <Card className="p-4 sticky top-8">
-        <CardHeader className="flex justify-between items-center">
+    <aside className="w-full lg:w-1/3 xl:w-1/4">
+      <Card className="p-4 sticky top-8 bg-card/70 backdrop-blur-sm border border-border shadow-lg">
+        <CardHeader className="flex justify-between items-center pb-3">
           <h2 className="text-xl font-bold">Filters</h2>
           <Button
-            isIconOnly
             aria-label="Clear filters"
-            size="sm"
-            variant="light"
-            onPress={onClearFilters}
+            size="icon"
+            variant="ghost"
+            onClick={onClearFilters}
           >
             <Icon icon="solar:refresh-circle-bold-duotone" width={24} />
           </Button>
         </CardHeader>
-        <CardBody className="space-y-4">
-          <Input
-            label="Keyword"
-            placeholder="Search title, description..."
-            startContent={<Icon icon="solar:magnifer-linear" />}
-            value={filters.keyword}
-            onChange={(e) => onFilterChange("keyword", e.target.value)}
-          />
-          <Input
-            label="Member Name"
-            placeholder="e.g., John Doe"
-            startContent={<Icon icon="solar:user-linear" />}
-            value={filters.members}
-            onChange={(e) => onFilterChange("members", e.target.value)}
-          />
-          <Input
-            label="Tags"
-            placeholder="e.g., react, spring"
-            startContent={<Icon icon="solar:tag-linear" />}
-            value={filters.tags}
-            onChange={(e) => onFilterChange("tags", e.target.value)}
-          />
-          <Select
-            items={categories}
-            label="Category"
-            placeholder="Any category"
-            selectedKeys={filters.categoryId ? [filters.categoryId] : []}
-            onChange={(e) => onFilterChange("categoryId", e.target.value)}
-          >
-            {(item) => <SelectItem key={item.key}>{item.label}</SelectItem>}
-          </Select>
-          <Select
-            items={academicYears}
-            label="Academic Year"
-            placeholder="Any year"
-            selectedKeys={filters.academicYear ? [filters.academicYear] : []}
-            onChange={(e) => onFilterChange("academicYear", e.target.value)}
-          >
-            {(item) => <SelectItem key={item.key}>{item.label}</SelectItem>}
-          </Select>
-          <Select
-            items={studentYears}
-            label="Student Year"
-            placeholder="Any level"
-            selectedKeys={filters.studentYear ? [filters.studentYear] : []}
-            onChange={(e) => onFilterChange("studentYear", e.target.value)}
-          >
-            {(item) => <SelectItem key={item.key}>{item.label}</SelectItem>}
-          </Select>
-          <Select
-            items={statuses}
-            label="Status"
-            placeholder="Any status"
-            selectedKeys={filters.status ? [filters.status] : []}
-            onChange={(e) => onFilterChange("status", e.target.value)}
-          >
-            {(item) => <SelectItem key={item.key}>{item.label}</SelectItem>}
-          </Select>
-        </CardBody>
+
+        <CardContent className="space-y-4">
+          {/* Keyword */}
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Keyword</label>
+            <Input
+              className="w-full"
+              placeholder="Search title, description..."
+              value={filters.keyword}
+              onChange={(e) => onFilterChange("keyword", e.target.value)}
+            />
+          </div>
+
+          {/* Member Name */}
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Member Name</label>
+            <Input
+              className="w-full"
+              placeholder="e.g., John Doe"
+              value={filters.members}
+              onChange={(e) => onFilterChange("members", e.target.value)}
+            />
+          </div>
+
+          {/* Supervisor */}
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Supervisor</label>
+            <Input
+              className="w-full"
+              placeholder="e.g., Dr. Smith"
+              value={filters.supervisor}
+              onChange={(e) => onFilterChange("supervisor", e.target.value)}
+            />
+          </div>
+
+          {/* Tags */}
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Tags</label>
+            <Input
+              className="w-full"
+              placeholder="e.g., react, spring"
+              value={filters.tags}
+              onChange={(e) => onFilterChange("tags", e.target.value)}
+            />
+          </div>
+
+          {/* Category */}
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Category</label>
+            <Select
+              value={filters.categoryId || ""}
+              onValueChange={(val) => onFilterChange("categoryId", val)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Any category" />
+              </SelectTrigger>
+              <SelectContent className="bg-background">
+                {categories.map((c) => (
+                  <SelectItem key={c.key} value={c.key}>
+                    {c.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Academic Year */}
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Academic Year</label>
+            <Select
+              value={filters.academicYear || ""}
+              onValueChange={(val) => onFilterChange("academicYear", val)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Any year" />
+              </SelectTrigger>
+              <SelectContent className="bg-background">
+                {academicYears.map((y) => (
+                  <SelectItem key={y.key} value={y.key}>
+                    {y.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Student Year */}
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Student Year</label>
+            <Select
+              value={filters.studentYear || ""}
+              onValueChange={(val) => onFilterChange("studentYear", val)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Any level" />
+              </SelectTrigger>
+              <SelectContent className="bg-background">
+                {studentYears.map((s) => (
+                  <SelectItem key={s.key} value={s.key}>
+                    {s.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
       </Card>
-    </div>
+    </aside>
   );
 }

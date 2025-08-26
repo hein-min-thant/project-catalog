@@ -54,6 +54,7 @@ export interface Filters {
   status: string;
   tags: string;
   name: string;
+  supervisor: string;
   members: string;
   page: number;
   size: number;
@@ -88,6 +89,7 @@ export default function ProjectsPage() {
     status: "",
     tags: "",
     name: "",
+    supervisor: "",
     members: "",
     page: 0,
     size: 9,
@@ -101,6 +103,7 @@ export default function ProjectsPage() {
     keyword: useDebouncedValue(filters.keyword, 500),
     members: useDebouncedValue(filters.members, 500),
     name: useDebouncedValue(filters.name, 500),
+    supervisor: useDebouncedValue(filters.supervisor, 500),
     tags: useDebouncedValue(filters.tags, 500),
   };
 
@@ -128,6 +131,15 @@ export default function ProjectsPage() {
   return (
     <DefaultLayout>
       <div className="container mx-auto p-4 md:p-8">
+        <header className="text-center lg:text-left mb-6">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-foreground">
+            Explore Projects
+          </h1>
+          <p className="mt-2 text-base md:text-lg text-muted-foreground max-w-2xl">
+            Discover student projects, filter by year, category, or keywords,
+            and dive into detailed reports.
+          </p>
+        </header>
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left Column for Filters */}
           <ProjectFilters

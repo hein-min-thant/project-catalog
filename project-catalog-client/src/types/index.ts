@@ -55,3 +55,25 @@ export interface SupervisorProject extends Project {
   approvedById?: number;
   approvedByName?: string;
 }
+
+// Notification types
+export interface Notification {
+  id: number;
+  recipientUserId: number;
+  message: string;
+  projectId: number;
+  commentId?: number;
+  isRead: boolean;
+  createdAt: string;
+  type: "COMMENT" | "APPROVAL" | "REJECTION";
+  projectTitle?: string;
+  commentText?: string;
+  commenterName?: string;
+  approverName?: string;
+  rejectionReason?: string;
+}
+
+export interface NotificationCount {
+  unreadCount: number;
+  totalCount: number;
+}

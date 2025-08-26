@@ -22,7 +22,7 @@ dropbox:
 openrouter:
   api:
     url: https://openrouter.ai/api/v1/chat/completions
-    key: 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
+    key: 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
 
 # Commenting out proxy configuration that might interfere with external API calls
 # http:

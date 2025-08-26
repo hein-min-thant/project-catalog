@@ -1,5 +1,6 @@
 // src/components/ProjectGrid.tsx
-import { Spinner, Pagination } from "@heroui/react";
+import { Pagination } from "@heroui/react";
+import { Icon } from "@iconify/react";
 
 import { Project, Page, Filters } from "../pages/projects";
 
@@ -24,8 +25,12 @@ export function ProjectGrid({
 }: ProjectGridProps) {
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-96">
-        <Spinner label="Loading projects..." size="lg" />
+      <div className="flex h-screen items-center justify-center">
+        <Icon
+          className="h-10 w-10 text-cyan-500"
+          icon="svg-spinners:90-ring-with-bg"
+        />
+        <h2 className="text-cyan-500 ml-3">Loading...</h2>
       </div>
     );
   }
@@ -50,7 +55,7 @@ export function ProjectGrid({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {data.content.map((project) => (
           <ProjectCard key={project.id} project={project} />
         ))}

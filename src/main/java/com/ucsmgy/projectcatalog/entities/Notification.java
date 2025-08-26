@@ -24,8 +24,26 @@ public class Notification {
     @Column(name = "project_id", nullable = false)
     private Long projectId;
 
-    @Column(name = "comment_id", nullable = false)
+    @Column(name = "comment_id")
     private Long commentId;
+
+    @Column(name = "notification_type", nullable = false)
+    private String notificationType = "COMMENT";
+
+    @Column(name = "project_title")
+    private String projectTitle;
+
+    @Column(name = "comment_text")
+    private String commentText;
+
+    @Column(name = "commenter_name")
+    private String commenterName;
+
+    @Column(name = "approver_name")
+    private String approverName;
+
+    @Column(name = "rejection_reason")
+    private String rejectionReason;
 
     @Column(name = "is_read", nullable = false)
     private boolean isRead = false;

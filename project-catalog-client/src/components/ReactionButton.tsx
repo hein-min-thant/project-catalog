@@ -48,8 +48,8 @@ export const ReactionButton = ({ projectId, userId }: ReactionButtonProps) => {
       queryClient.setQueryData(
         ["reactionStatus", projectId, userId],
         newReactionStatus
-      );
-      // Invalidate the query to fetch the latest data from the server
+      ); // Invalidate the query to fetch the latest data from the server
+      // Invalidation handles synchronization across different pages/components
       queryClient.invalidateQueries({
         queryKey: ["reactionStatus", projectId, userId],
       });
@@ -58,9 +58,12 @@ export const ReactionButton = ({ projectId, userId }: ReactionButtonProps) => {
 
   if (isLoading) {
     return (
-      <Button disabled className="gap-1" size="lg" variant="ghost">
-        <Icon className="text-xl" icon="mdi:heart-outline" />
-        <span className="text-sm">...</span>
+      <Button disabled className="gap-1 text-sm" size="default" variant="ghost">
+        <Icon
+          className="text-xl text-gray-400 dark:text-gray-600"
+          icon="mdi:heart-outline"
+        />
+        <span className="text-gray-500 dark:text-gray-500">...</span>
       </Button>
     );
   }
@@ -74,16 +77,33 @@ export const ReactionButton = ({ projectId, userId }: ReactionButtonProps) => {
 
   return (
     <Button
-      className="gap-1"
+      className={`
+        gap-1 
+        text-sm 
+        font-semibold 
+        transition-all duration-200 
+        shadow-sm 
+        border-1 border-rose-500
+        // Conditionals for Active (Reacted) vs. Inactive (Outline) state
+        ${
+          isReacted
+            ? "bg-rose-500 hover:bg-rose-600 text-white dark:bg-rose-600 dark:hover:bg-rose-700 dark:text-white"
+            : "bg-transparent text-gray-600 hover:bg-rose-50 dark:text-gray-400 dark:hover:bg-rose-900/30"
+        }
+      `}
       disabled={toggleReactionMutation.isPending}
-      variant={isReacted ? "default" : "outline"}
+      variant={isReacted ? "default" : "ghost"}
       onClick={handleToggleReaction}
     >
       <Icon
-        className="text-rose-500"
+        className={`text-xl transition-transform duration-100 ${isReacted ? "text-white dark:text-white" : "text-rose-500 dark:text-rose-400 group-hover:text-rose-600"}`}
         icon={isReacted ? "mdi:heart" : "mdi:heart-outline"}
       />
-      <span className="text-sm">{totalReactions}</span>
+      <span
+        className={`${isReacted ? "text-white dark:text-white" : "text-foreground dark:text-foreground"}`}
+      >
+        {totalReactions}
+      </span>
     </Button>
   );
 };

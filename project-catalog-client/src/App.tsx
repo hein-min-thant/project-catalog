@@ -15,6 +15,7 @@ import CreateProjectPage from "@/pages/create";
 import SavedProjectsPage from "@/pages/saved";
 import SupervisorDashboardPage from "@/pages/supervisor-dashboard";
 import AdminDashboardPage from "@/pages/admin-dashboard";
+import NotificationsPage from "@/pages/notifications";
 
 function App() {
   return (
@@ -108,6 +109,14 @@ function App() {
           </PrivateRoute>
         }
         path="/admin-dashboard"
+      />
+      <Route
+        element={
+          <PrivateRoute>
+            <NotificationsPage />
+          </PrivateRoute>
+        }
+        path="/notifications"
       />
     </Routes>
   );

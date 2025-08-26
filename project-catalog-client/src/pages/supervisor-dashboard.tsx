@@ -137,46 +137,46 @@ export default function SupervisorDashboardPage() {
 
   return (
     <DefaultLayout>
-      <div className="container mx-auto p-4 md:p-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">Supervisor Dashboard</h1>
-          <p className="text-gray-600 dark:text-gray-400">
+      <div className="container mx-auto px-4 py-8 space-y-6">
+        {/* Page header */}
+        <header className="text-center lg:text-left">
+          <h1 className="text-4xl font-bold text-cyan-500">
+            Supervisor Dashboard
+          </h1>
+          <p className="text-muted-foreground mt-2">
             Review and approve pending projects
           </p>
-        </div>
+        </header>
 
+        {/* Loading / Empty / Error */}
         {isLoading ? (
-          <div className="flex justify-center items-center h-64">
+          <div className="flex justify-center py-16">
             <Spinner size="lg" />
           </div>
         ) : isError ? (
-          <Card>
-            <CardContent className="p-6">
-              <div className="text-center">
-                <Icon
-                  className="w-16 h-16 mx-auto text-red-500 mb-4"
-                  icon="mdi:alert-circle"
-                />
-                <h2 className="text-2xl font-bold mb-2">Error</h2>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Failed to load pending projects.
-                </p>
-              </div>
+          <Card className="bg-card/60 backdrop-blur-sm">
+            <CardContent className="p-8 text-center">
+              <Icon
+                className="w-16 h-16 text-red-500 mx-auto mb-4"
+                icon="mdi:alert-circle"
+              />
+              <h2 className="text-2xl font-bold mb-2">Error</h2>
+              <p className="text-muted-foreground">
+                Failed to load pending projects.
+              </p>
             </CardContent>
           </Card>
         ) : pendingProjects?.length === 0 ? (
-          <Card>
-            <CardContent className="p-6">
-              <div className="text-center">
-                <Icon
-                  className="w-16 h-16 mx-auto text-green-500 mb-4"
-                  icon="mdi:check-circle"
-                />
-                <h2 className="text-2xl font-bold mb-2">No Pending Projects</h2>
-                <p className="text-gray-600 dark:text-gray-400">
-                  All projects have been reviewed.
-                </p>
-              </div>
+          <Card className="bg-card/60 backdrop-blur-sm">
+            <CardContent className="p-8 text-center">
+              <Icon
+                className="w-16 h-16 text-green-500 mx-auto mb-4"
+                icon="mdi:check-circle"
+              />
+              <h2 className="text-2xl font-bold mb-2">No Pending Projects</h2>
+              <p className="text-muted-foreground">
+                All projects have been reviewed.
+              </p>
             </CardContent>
           </Card>
         ) : (
@@ -184,7 +184,7 @@ export default function SupervisorDashboardPage() {
             {pendingProjects?.map((project) => (
               <Card
                 key={project.id}
-                className="flex flex-col dark:bg-zinc-900 dark:border-zinc-700"
+                className="bg-card/60 backdrop-blur-sm border-border flex flex-col"
               >
                 <CardHeader>
                   <div className="flex justify-between items-start">
@@ -194,64 +194,59 @@ export default function SupervisorDashboardPage() {
                         {project.description}
                       </CardDescription>
                     </div>
-                    <Badge variant="secondary">Pending Approval</Badge>
+                    <Badge variant="secondary">Pending</Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="flex flex-col flex-1">
-                  <div className="flex-1 space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                          Academic Year
-                        </p>
-                        <p>{project.academic_year}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                          Student Year
-                        </p>
-                        <p>{project.student_year}</p>
-                      </div>
+
+                <CardContent className="flex flex-col flex-1 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">
+                        Academic Year
+                      </span>
+                      <p>{project.academic_year}</p>
                     </div>
-
-                    {project.objectives && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-                          Objectives
-                        </p>
-                        <p className="text-sm">{project.objectives}</p>
-                      </div>
-                    )}
-
-                    {project.tags && project.tags.length > 0 && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-                          Tags
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {project.tags.map((tag, index) => (
-                            <Badge key={index} variant="outline">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                    <div>
+                      <span className="text-muted-foreground">
+                        Student Year
+                      </span>
+                      <p>{project.student_year}</p>
+                    </div>
                   </div>
 
-                  <Separator className="mt-4 mb-4" />
+                  {project.objectives && (
+                    <div>
+                      <span className="text-muted-foreground">Objectives</span>
+                      <p className="text-sm">{project.objectives}</p>
+                    </div>
+                  )}
 
-                  <div className="flex flex-wrap gap-2">
+                  {project.tags?.length > 0 && (
+                    <div>
+                      <span className="text-muted-foreground">Tags</span>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {project.tags.map((tag, idx) => (
+                          <Badge key={idx} variant="outline">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <Separator className="my-2" />
+
+                  <div className="flex flex-wrap gap-2 mt-auto">
                     <Button
                       className="flex-1"
                       disabled={approveMutation.isPending}
                       onClick={() => handleApprove(project)}
                     >
                       {approveMutation.isPending ? (
-                        <Spinner size="sm" />
+                        <Spinner />
                       ) : (
                         <>
-                          <Icon className="w-4 h-4 mr-2" icon="mdi:check" />
+                          <Icon className="w-4 h-4 mr-1" icon="mdi:check" />
                           Approve
                         </>
                       )}
@@ -266,17 +261,16 @@ export default function SupervisorDashboardPage() {
                         <Spinner size="sm" />
                       ) : (
                         <>
-                          <Icon className="w-4 h-4 mr-2" icon="mdi:close" />
+                          <Icon className="w-4 h-4 mr-1" icon="mdi:close" />
                           Reject
                         </>
                       )}
                     </Button>
                     <Button
                       className="flex-1"
-                      disabled={rejectMutation.isPending}
                       onClick={() => navigate(`/projects/${project.id}`)}
                     >
-                      <Icon className="w-4 h-4 mr-2" icon="mdi:arrow-right" />
+                      <Icon className="w-4 h-4 mr-1" icon="mdi:arrow-right" />
                       View
                     </Button>
                   </div>
@@ -292,14 +286,13 @@ export default function SupervisorDashboardPage() {
             <DialogHeader>
               <DialogTitle>Reject Project</DialogTitle>
               <DialogDescription>
-                Please provide a reason for rejecting &quot;
-                {selectedProject?.title}
+                Provide a reason for rejecting &quot;{selectedProject?.title}
                 &quot;.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <Textarea
-                placeholder="Enter rejection reason..."
+                placeholder="Enter rejection reason…"
                 rows={4}
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}

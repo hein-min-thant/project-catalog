@@ -1,9 +1,11 @@
 @import "tailwindcss";
-@import "tw-animate-css";
+/* Removed "tw-animate-css" as it's not a standard Tailwind plugin */
 
+/* Use the custom variant for dark mode detection */
 @custom-variant dark (&:is(.dark *));
 @config "../../tailwind.config.js";
 
+/* Keep Geist Font definitions as they are modern */
 @font-face {
   font-family: "Geist";
   src: url("../assets/fonts/Geist-VariableFont_wght.ttf") format("truetype");
@@ -18,127 +20,171 @@
   font-style: normal;
 }
 
+/* FIX: Apply Geist font family correctly to the body */
 body {
-  font-family: var(--color-background);
+  font-family: "Geist", sans-serif;
 }
-/* Hide scrollbar for Chrome, Safari and Opera */
+
+/* Hide scrollbar styles (Kept as is) */
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
-
-/* Hide scrollbar for IE, Edge and Firefox */
 .hide-scrollbar {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
 }
 
+:root {
+  --radius: 0.75rem;
+
+  /* light glass */
+  --glass: 255 255 255 / 0.6;
+  --glass-border: 0 0 0 / 0.08;
+
+  /* semantic */
+  --background: 245 245 245;
+  --foreground: 15 23 42;
+
+  --card: 255 255 255 / 0.7;
+  --card-foreground: 15 23 42;
+
+  --popover: 255 255 255 / 0.75;
+  --popover-foreground: 15 23 42;
+
+  --primary: 6 182 212; /* cyan-500 */
+  --primary-foreground: 255 255 255;
+
+  --secondary: 226 232 240;
+  --secondary-foreground: 30 41 59;
+
+  --muted: 241 245 249;
+  --muted-foreground: 100 116 139;
+
+  --accent: 224 242 254;
+  --accent-foreground: 12 74 110;
+
+  --destructive: 239 68 68;
+  --border: 226 232 240;
+  --input: 241 245 249;
+  --ring: 6 182 212;
+
+  /* chart / sidebar unchanged */
+  --chart-1: 251 146 60;
+  --chart-2: 34 197 94;
+  --chart-3: 99 102 241;
+  --chart-4: 236 72 153;
+  --chart-5: 168 85 247;
+
+  --sidebar: 255 255 255;
+  --sidebar-foreground: 15 23 42;
+  --sidebar-primary: 6 182 212;
+  --sidebar-primary-foreground: 255 255 255;
+  --sidebar-accent: 241 245 249;
+  --sidebar-accent-foreground: 15 23 42;
+  --sidebar-border: 226 232 240;
+  --sidebar-ring: 6 182 212;
+}
+
+/* 2)  Dark glass tokens  ------------------------------------------ */
+.dark {
+  --glass: 30 41 59 / 0.55;
+  --glass-border: 255 255 255 / 0.1;
+
+  --background: 2 6 23;
+  --foreground: 248 250 252;
+
+  --card: 30 41 59 / 0.6;
+  --card-foreground: 248 250 252;
+
+  --popover: 30 41 59 / 0.65;
+  --popover-foreground: 248 250 252;
+
+  --primary: 34 211 238; /* cyan-400 */
+  --primary-foreground: 15 23 42;
+
+  --secondary: 51 65 85;
+  --secondary-foreground: 226 232 240;
+
+  --muted: 30 41 59;
+  --muted-foreground: 148 163 184;
+
+  --accent: 14 165 233;
+  --accent-foreground: 248 250 252;
+
+  --destructive: 239 68 68;
+  --border: 51 65 85;
+  --input: 51 65 85;
+  --ring: 34 211 238;
+
+  --sidebar: 15 23 42;
+  --sidebar-foreground: 248 250 252;
+  --sidebar-primary: 34 211 238;
+  --sidebar-primary-foreground: 15 23 42;
+  --sidebar-accent: 30 41 59;
+  --sidebar-accent-foreground: 248 250 252;
+  --sidebar-border: 51 65 85;
+  --sidebar-ring: 34 211 238;
+}
+
+/* 3)  Tailwind inline theme mapping (kept from your file) --------- */
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-background: rgb(var(--background));
+  --color-foreground: rgb(var(--foreground));
+  --color-card: rgb(var(--card));
+  --color-card-foreground: rgb(var(--card-foreground));
+  --color-popover: rgb(var(--popover));
+  --color-popover-foreground: rgb(var(--popover-foreground));
+  --color-primary: rgb(var(--primary));
+  --color-primary-foreground: rgb(var(--primary-foreground));
+  --color-secondary: rgb(var(--secondary));
+  --color-secondary-foreground: rgb(var(--secondary-foreground));
+  --color-muted: rgb(var(--muted));
+  --color-muted-foreground: rgb(var(--muted-foreground));
+  --color-accent: rgb(var(--accent));
+  --color-accent-foreground: rgb(var(--accent-foreground));
+  --color-destructive: rgb(var(--destructive));
+  --color-border: rgb(var(--border));
+  --color-input: rgb(var(--input));
+  --color-ring: rgb(var(--ring));
+  --color-chart-1: rgb(var(--chart-1));
+  --color-chart-2: rgb(var(--chart-2));
+  --color-chart-3: rgb(var(--chart-3));
+  --color-chart-4: rgb(var(--chart-4));
+  --color-chart-5: rgb(var(--chart-5));
+  --color-sidebar: rgb(var(--sidebar));
+  --color-sidebar-foreground: rgb(var(--sidebar-foreground));
+  --color-sidebar-primary: rgb(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: rgb(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: rgb(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: rgb(var(--sidebar-accent-foreground));
+  --color-sidebar-border: rgb(var(--sidebar-border));
+  --color-sidebar-ring: rgb(var(--sidebar-ring));
 }
 
-:root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+/* 4)  Glass utilities (optional but handy) ------------------------ */
+@layer utilities {
+  .bg-glass {
+    background-color: rgb(var(--glass));
+    border: 1px solid rgb(var(--glass-border));
+    backdrop-filter: blur(16px) saturate(180%);
+  }
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+/* 5)  Scrollbar hide (kept) -------------------------------------- */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
+/* 6)  Base reset -------------------------------------------------- */
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -146,9 +192,41 @@ body {
   body {
     @apply bg-background text-foreground;
   }
-
-  .article_body,
-  h2 {
-    @apply text-2xl;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply text-foreground;
   }
+}
+
+/* 7)  Modern quill snow.css overrides ---------------------------- */
+.ql-container.ql-snow {
+  border: 1px solid rgb(var(--border));
+  border-radius: var(--radius);
+}
+.ql-editor {
+  font-family: inherit;
+  color: rgb(var(--foreground));
+}
+.ql-toolbar.ql-snow {
+  border: 1px solid rgb(var(--border));
+  border-bottom: none;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: rgb(var(--muted));
+}
+
+/* dark overrides */
+.dark .ql-toolbar.ql-snow {
+  background: rgb(var(--secondary));
+}
+.dark .ql-editor {
+  color: rgb(var(--foreground));
+}
+
+/* override glass inside Select */
+[data-radix-popper-content-wrapper] .bg-card {
+  background-color: rgb(var(--background)) !important;
 }

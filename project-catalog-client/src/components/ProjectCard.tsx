@@ -1,25 +1,25 @@
 // src/components/ProjectCard.tsx
-import { Card, CardHeader, CardBody, CardFooter, Button } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import { useQuery } from "@tanstack/react-query";
 
-import { Badge } from "@/components/ui/badge";
 import { Project } from "@/pages/projects";
 import { ApprovalStatusBadge } from "@/components/ApprovalStatusBadge";
 import api from "@/config/api";
 
-export default function ProjectCard({ project }: { project: Project }) {
+interface ProjectCardProps {
+  project: Project;
+}
+
+export default function ProjectCard({ project }: ProjectCardProps) {
   const { data: categoryName } = useQuery({
     queryKey: ["categoryName", project.categoryId],
-    queryFn: async () => {
-      const { data } = await api.get(`/category/${project?.categoryId}`);
-
-      return data;
-    },
+    queryFn: async () =>
+      (await api.get(`/category/${project.categoryId}`)).data,
   });
 
   return (
-    <Card className="overflow-hidden border-small border-foreground/1">
+    <article className="bg-glass rounded-2xl shadow-lg ring-1 ring-border overflow-hidden flex flex-col h-full">
+      {/* Cover (optional) */}
       {project.coverImageUrl && (
         <div className="w-full h-40 overflow-hidden">
           <img
@@ -29,15 +29,18 @@ export default function ProjectCard({ project }: { project: Project }) {
           />
         </div>
       )}
-      <CardHeader className="pb-0">
-        <div className="flex justify-between items-start">
-          <h2 className="text-xl font-semibold">{project.title}</h2>
-        </div>
-      </CardHeader>
 
-      <CardBody className="px-3 py-2">
-        <div className="flex items-start gap-3 content-between">
-          <Badge className="text-xs block">{categoryName}</Badge>
+      {/* Content — fills available space */}
+      <div className="p-2.5 flex flex-col flex-1">
+        <h2 className="text-xl font-bold text-foreground mb-2">
+          {project.title}
+        </h2>
+
+        {/* Badges */}
+        <div className="flex items-center gap-2 mb-3">
+          <span className="rounded-full px-2.5 py-0.5 text-xs font-semibold bg-secondary text-secondary-foreground">
+            {categoryName}
+          </span>
           {project.approvalStatus && (
             <ApprovalStatusBadge
               className="text-xs"
@@ -45,37 +48,39 @@ export default function ProjectCard({ project }: { project: Project }) {
             />
           )}
         </div>
-        <div className="flex flex-col gap-2 pt-2">
-          <p className="text-sm  line-clamp-3">{project.description}</p>
 
-          <div className="flex items-center gap-2 text-xs mt-2">
-            {project.academic_year && (
-              <div className="flex items-center gap-1">
-                <Icon icon="mdi:calendar" />
-                <span>{project.academic_year}</span>
-              </div>
-            )}
-            {project.student_year && (
-              <div className="flex items-center gap-1 ml-3">
-                <Icon icon="mdi:school" />
-                <span>{project.student_year}</span>
-              </div>
-            )}
-          </div>
+        {/* Description */}
+        <p className="text-sm text-muted-foreground line-clamp-3 mb-3">
+          {project.description}
+        </p>
+
+        {/* Meta */}
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          {project.academic_year && (
+            <div className="flex items-center gap-1">
+              <Icon icon="mdi:calendar" />
+              <span>{project.academic_year}</span>
+            </div>
+          )}
+          {project.student_year && (
+            <div className="flex items-center gap-1">
+              <Icon icon="mdi:school" />
+              <span>{project.student_year}</span>
+            </div>
+          )}
         </div>
-      </CardBody>
-      <CardFooter className="justify-end gap-2">
-        <Button
-          as="a"
-          className="flex items-center gap-1"
-          color="primary"
-          href={`/projects/${project.id}`}
-          size="sm"
-        >
-          View Project
-          <Icon icon="mdi:arrow-right" />
-        </Button>
-      </CardFooter>
-    </Card>
+
+        {/* Pushes button to the bottom */}
+        <div className="mt-auto pt-4">
+          <a
+            className="w-full flex items-center justify-center gap-2 rounded-lg bg-cyan-500 px-3 py-2 text-sm font-medium text-white hover:bg-cyan-600 transition"
+            href={`/projects/${project.id}`}
+          >
+            View Project
+            <Icon icon="mdi:arrow-right" />
+          </a>
+        </div>
+      </div>
+    </article>
   );
 }
