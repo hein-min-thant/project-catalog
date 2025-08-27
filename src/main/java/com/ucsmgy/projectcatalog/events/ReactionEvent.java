@@ -6,17 +6,19 @@ import org.springframework.context.ApplicationEvent;
 
 @Setter
 @Getter
-public class ProjectApprovedEvent extends ApplicationEvent {
+public class ReactionEvent extends ApplicationEvent {
     private final Long projectId;
     private final Long projectOwnerId;
+    private final Long reactionId;
     private final String projectTitle;
-    private final String approverName;
+    private final String reactorName;
 
-    public ProjectApprovedEvent(Object source, Long projectId, Long projectOwnerId, String projectTitle, String approverName) {
+    public ReactionEvent(Object source, Long projectId, Long projectOwnerId,Long reactionId, String projectTitle, String reactorName) {
         super(source);
         this.projectId = projectId;
         this.projectOwnerId = projectOwnerId;
+        this.reactionId = reactionId;
         this.projectTitle = projectTitle;
-        this.approverName = approverName;
+        this.reactorName = reactorName;
     }
 }

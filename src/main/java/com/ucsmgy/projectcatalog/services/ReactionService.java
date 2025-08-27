@@ -4,12 +4,15 @@ import com.ucsmgy.projectcatalog.dtos.ReactionResponseDTO;
 import com.ucsmgy.projectcatalog.entities.Project;
 import com.ucsmgy.projectcatalog.entities.Reaction;
 import com.ucsmgy.projectcatalog.entities.User;
+import com.ucsmgy.projectcatalog.events.CommentCreatedEvent;
+import com.ucsmgy.projectcatalog.events.ReactionEvent;
 import com.ucsmgy.projectcatalog.exceptions.EntityNotFoundException;
 import com.ucsmgy.projectcatalog.repositories.ProjectReactionRepository;
 import com.ucsmgy.projectcatalog.repositories.ProjectRepository;
 import com.ucsmgy.projectcatalog.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -21,6 +24,7 @@ public class ReactionService {
     private final ProjectReactionRepository reactionRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public ReactionResponseDTO toggleReaction(Long projectId, Long userId) {
@@ -39,6 +43,10 @@ public class ReactionService {
             reaction.setProject(project);
             reaction.setUser(user);
             reactionRepository.save(reaction);
+
+            User projectOwner = project.getUser();
+
+            eventPublisher.publishEvent(new ReactionEvent(this, project.getId(),projectOwner.getId(),reaction.getId(), project.getTitle(),user.getName()));
         }
 
         long totalReactions = reactionRepository.countByProjectId(projectId);

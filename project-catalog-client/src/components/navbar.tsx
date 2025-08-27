@@ -15,7 +15,7 @@ import clsx from "clsx";
 import { button as buttonStyles } from "@heroui/theme";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { LogOut, SaveIcon, UserCircle, Bell } from "lucide-react";
+import { LogOut, SaveIcon, UserCircle, Bell, Plus, UserPlus } from "lucide-react";
 
 import { siteConfig } from "@/config/site";
 import { ThemeSwitch } from "@/components/theme-switch";
@@ -45,9 +45,16 @@ export const Navbar = () => {
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
-      const { data } = await api.get("/users/me");
-
-      setUser(data);
+      if (isAuthenticated()) {
+        try {
+          const { data } = await api.get("/users/me");
+          setUser(data);
+        } catch (error) {
+          // If token is invalid, user will be redirected to login
+          localStorage.removeItem("jwt");
+          setUser(null);
+        }
+      }
     };
 
     fetchCurrentUser();
@@ -122,99 +129,131 @@ export const Navbar = () => {
           <ThemeSwitch />
         </NavbarItem>
 
+        {/* Show notification dropdown only when authenticated */}
         {isAuthenticated() && (
           <NavbarItem>
             <NotificationDropdown />
           </NavbarItem>
         )}
 
-        <NavbarItem>
-          <Link
-            className={buttonStyles({
-              radius: "md",
-              size: "md",
-              color: "primary",
-              className: "bg-cyan-500 text-white hover:bg-cyan-600 transition",
-            })}
-            href="/create"
-          >
-            Create Project
-          </Link>
-        </NavbarItem>
-
+        {/* Authentication-based button */}
         {isAuthenticated() ? (
-          <NavbarItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger>
-                <Avatar className="h-9 w-9 ring-2 ring-cyan-500 ring-offset-2 ring-offset-background">
-                  {user?.avatarUrl ? (
-                    <AvatarImage
-                      alt={user.name || "User"}
-                      src={user.avatarUrl}
-                    />
-                  ) : (
-                    <AvatarFallback className="bg-cyan-500 text-white font-bold">
-                      {user?.name?.charAt(0).toUpperCase() || "U"}
-                    </AvatarFallback>
-                  )}
-                </Avatar>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-background">
-                <DropdownMenuLabel>
-                  <div className="flex flex-col">
-                    <span className="font-bold">{user?.name || "User"}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {user?.email || ""}
-                    </span>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
+          <>
+            {/* Create Project Button - for logged in users */}
+            <NavbarItem>
+              <Link
+                className={buttonStyles({
+                  radius: "md",
+                  size: "md",
+                  color: "primary",
+                  className: "bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-600 hover:to-blue-600 transition-all duration-300 shadow-lg hover:shadow-xl",
+                })}
+                href="/create"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Create Project
+              </Link>
+            </NavbarItem>
+
+            {/* User Avatar Dropdown */}
+            <NavbarItem>
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <Avatar className="h-9 w-9 ring-2 ring-cyan-500 ring-offset-2 ring-offset-background hover:ring-cyan-400 transition-all cursor-pointer">
+                    {user?.avatarUrl ? (
+                      <AvatarImage
+                        alt={user.name || "User"}
+                        src={user.avatarUrl}
+                      />
+                    ) : (
+                      <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-blue-500 text-white font-bold">
+                        {user?.name?.charAt(0).toUpperCase() || "U"}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 bg-background border-border">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col">
+                      <span className="font-bold">{user?.name || "User"}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {user?.email || ""}
+                      </span>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem
+                      className="bg-background hover:bg-accent"
+                      onClick={() => navigate("/profile")}
+                    >
+                      <UserCircle className="mr-2 h-4 w-4" />
+                      Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="bg-background hover:bg-accent"
+                      onClick={() => navigate("/saved")}
+                    >
+                      <SaveIcon className="mr-2 h-4 w-4" />
+                      Saved Projects
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="bg-background hover:bg-accent"
+                      onClick={() => navigate("/notifications")}
+                    >
+                      <Bell className="mr-2 h-4 w-4" />
+                      Notifications
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    className="bg-background"
-                    onClick={() => navigate("/profile")}
+                    onClick={handleLogout}
+                    className="bg-background hover:bg-destructive/10 text-destructive hover:text-destructive"
                   >
-                    <UserCircle className="mr-2 h-4 w-4" />
-                    Profile
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log out
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="bg-background"
-                    onClick={() => navigate("/saved-projects")}
-                  >
-                    <SaveIcon className="mr-2 h-4 w-4" />
-                    Saved Projects
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="bg-background"
-                    onClick={() => navigate("/notifications")}
-                  >
-                    <Bell className="mr-2 h-4 w-4" />
-                    Notifications
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </NavbarItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </NavbarItem>
+          </>
         ) : (
-          <NavbarItem>
-            <Link
-              className={buttonStyles({
-                radius: "md",
-                size: "md",
-                color: "primary",
-                className:
-                  "bg-cyan-500 text-white hover:bg-cyan-600 transition",
-              })}
-              href="/register"
-            >
-              Sign Up
-            </Link>
-          </NavbarItem>
+          <>
+            {/* Create Project Button - for non-authenticated users */}
+            <NavbarItem>
+              <Link
+                className={buttonStyles({
+                  radius: "md",
+                  size: "md",
+                  color: "primary",
+                  className: "bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-600 hover:to-blue-600 transition-all duration-300 shadow-lg hover:shadow-xl",
+                })}
+                href="/create"
+              >
+
+                  {isAuthenticated() &&
+                    <Plus className="mr-2 h-4 w-4" />
+                  }
+                {!isAuthenticated() ? "Login" : "Create Project"}
+              </Link>
+            </NavbarItem>
+
+            {/* Sign Up Button */}
+            <NavbarItem>
+              <Link
+                className={buttonStyles({
+                  radius: "md",
+                  size: "md",
+                  variant: "bordered",
+                  className: "border-cyan-500 text-cyan-600 hover:bg-cyan-50 dark:hover:bg-cyan-950/50 transition-all duration-300",
+                })}
+                href="/register"
+              >
+                <UserPlus className="mr-2 h-4 w-4" />
+                Sign Up
+              </Link>
+            </NavbarItem>
+          </>
         )}
       </NavbarContent>
 
@@ -230,27 +269,81 @@ export const Navbar = () => {
       {/* Mobile menu drawer */}
       <NavbarMenu className="bg-card/80 backdrop-blur-md pt-4">
         <div className="mx-4 mb-4">{searchInput}</div>
-        {siteConfig.navMenuItems.map((item, index) => (
+
+        {/* Mobile navigation items */}
+        {siteConfig.navItems.map((item, index) => (
           <NavbarMenuItem key={item.href}>
             <Link
-              className={clsx(
-                "block py-2 text-lg",
-                index === siteConfig.navMenuItems.length - 1
-                  ? "text-red-500 hover:text-red-600"
-                  : "text-foreground/90 hover:text-cyan-500"
-              )}
-              color={index === 2 ? "primary" : "foreground"}
+              className="block py-2 text-lg text-foreground/90 hover:text-cyan-500 transition"
+              color="foreground"
               href={item.href}
-              onClick={
-                index === siteConfig.navMenuItems.length - 1
-                  ? handleLogout
-                  : undefined
-              }
             >
               {item.label}
             </Link>
           </NavbarMenuItem>
         ))}
+
+        {/* Mobile auth section */}
+        <div className="mt-4 pt-4 border-t border-border">
+          {isAuthenticated() ? (
+            <>
+              <NavbarMenuItem>
+                <Link
+                  className="block py-2 text-lg text-foreground/90 hover:text-cyan-500 transition flex items-center"
+                  color="foreground"
+                  href="/profile"
+                >
+                  <UserCircle className="mr-3 h-5 w-5" />
+                  Profile
+                </Link>
+              </NavbarMenuItem>
+              <NavbarMenuItem>
+                <Link
+                  className="block py-2 text-lg text-foreground/90 hover:text-cyan-500 transition flex items-center"
+                  color="foreground"
+                  href="/create"
+                >
+                   {isAuthenticated() &&
+                    <Plus className="mr-2 h-4 w-4" />
+                  }
+                {!isAuthenticated() ? "Login" : "Create Project"}
+                </Link>
+              </NavbarMenuItem>
+              <NavbarMenuItem>
+                <button
+                  className="block w-full text-left py-2 text-lg text-red-500 hover:text-red-600 transition flex items-center"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="mr-3 h-5 w-5" />
+                  Log out
+                </button>
+              </NavbarMenuItem>
+            </>
+          ) : (
+            <>
+              <NavbarMenuItem>
+                <Link
+                  className="block py-2 text-lg text-foreground/90 hover:text-cyan-500 transition flex items-center"
+                  color="foreground"
+                  href="/register"
+                >
+                  <UserPlus className="mr-3 h-5 w-5" />
+                  Sign Up
+                </Link>
+              </NavbarMenuItem>
+              <NavbarMenuItem>
+                <Link
+                  className="block py-2 text-lg text-foreground/90 hover:text-cyan-500 transition flex items-center"
+                  color="foreground"
+                  href="/create"
+                >
+                  <Plus className="mr-3 h-5 w-5" />
+                  Create Project
+                </Link>
+              </NavbarMenuItem>
+            </>
+          )}
+        </div>
       </NavbarMenu>
     </HeroUINavbar>
   );

@@ -7,7 +7,6 @@ import LoginPage from "./pages/login";
 import EditProjectPage from "./pages/edit";
 
 import IndexPage from "@/pages/index";
-import AboutPage from "@/pages/about";
 import ProjectsPage from "@/pages/projects";
 import ProfilePage from "@/pages/profile";
 import ProjectDetailPage from "@/pages/project-detail";
@@ -62,14 +61,7 @@ function App() {
         }
         path="/saved-projects"
       />
-      <Route
-        element={
-          <PrivateRoute>
-            <AboutPage />
-          </PrivateRoute>
-        }
-        path="/about"
-      />
+    
       <Route
         element={
           <PublicRoute>

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ucsmgy.projectcatalog.dtos.ProjectRequestDTO;
 import com.ucsmgy.projectcatalog.dtos.ProjectResponseDTO;
 import com.ucsmgy.projectcatalog.entities.Project;
+import com.ucsmgy.projectcatalog.entities.Project.ApprovalStatus; // Import the ApprovalStatus enum
 import com.ucsmgy.projectcatalog.entities.ProjectFile;
 import com.ucsmgy.projectcatalog.entities.Tag;
 import org.mapstruct.*;
@@ -33,28 +34,30 @@ public interface ProjectMapper {
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "files", ignore = true)
     @Mapping(target = "tags", source = "tags", qualifiedByName = "mapTagStringsToEntities")
+    @Mapping(target = "approvalStatus", source = "approvalStatus", qualifiedByName = "mapApprovalStatus") // Corrected mapping
     void updateFromDto(ProjectRequestDTO dto, @MappingTarget Project project);
 
     @Mapping(target = "projectFiles", expression = "java(mapFiles(project))")
     @Mapping(target = "tags", expression = "java(mapTags(project))")
     @Mapping(target = "membersJson", expression = "java(mapMembers(project))")
-    @Mapping(source = "user.id", target = "userId") // maps the user's ID
-    @Mapping(source = "category.id", target = "categoryId") // maps the category's ID
-    @Mapping(source = "supervisor.id", target = "supervisorId") // maps the supervisor's ID
-    @Mapping(source = "supervisor.name", target = "supervisorName") // maps the supervisor's name
-    @Mapping(source = "approvalStatus", target = "approvalStatus") // maps the approval status
-    @Mapping(source = "approvedAt", target = "approvedAt") // maps the approval date
-    @Mapping(source = "approvedBy.id", target = "approvedById") // maps the approver's ID
-    @Mapping(source = "approvedBy.name", target = "approvedByName") // maps the approver's name
+    @Mapping(source = "user.id", target = "userId")
+    @Mapping(source = "category.id", target = "categoryId")
+    @Mapping(source = "supervisor.id", target = "supervisorId")
+    @Mapping(source = "supervisor.name", target = "supervisorName")
+    @Mapping(source = "approvalStatus", target = "approvalStatus")
+    @Mapping(source = "approvedAt", target = "approvedAt")
+    @Mapping(source = "approvedBy.id", target = "approvedById")
+    @Mapping(source = "approvedBy.name", target = "approvedByName")
     ProjectResponseDTO toDTO(Project project);
 
 
-    @Named("mapStatus")
-    default Project.Status mapStatus(String status) {
-        if (status == null) {
+    // Use the correct enum and a new method name for clarity
+    @Named("mapApprovalStatus")
+    default ApprovalStatus mapApprovalStatus(String approvalStatus) {
+        if (approvalStatus == null) {
             return null;
         }
-        return Project.Status.valueOf(status.toUpperCase());
+        return ApprovalStatus.valueOf(approvalStatus.toUpperCase());
     }
 
     @Named("mapTagStringsToEntities")

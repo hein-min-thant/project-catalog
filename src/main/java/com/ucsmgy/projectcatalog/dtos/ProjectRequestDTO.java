@@ -21,6 +21,7 @@ public class ProjectRequestDTO {
     private String student_year;
     private Long categoryId;
     private Long supervisorId;
+    private String approvalStatus;
     private List<MultipartFile> projectFiles;
     private List<String> tags;
     private String membersJson;

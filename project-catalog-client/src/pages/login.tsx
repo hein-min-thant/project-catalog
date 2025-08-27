@@ -7,23 +7,26 @@ import OTPForm from "@/components/OTPForm";
 export default function LoginPage() {
   const [step, setStep] = useState<"credentials" | "otp">("credentials");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const handleCredentialsSubmit = (submittedEmail: string) => {
+  const handleCredentialsSubmit = (submittedEmail: string, submittedPassword: string) => {
     setEmail(submittedEmail);
+    setPassword(submittedPassword);
     setStep("otp");
+  };
+
+  const handleBackToCredentials = () => {
+    setStep("credentials");
   };
 
   return (
     <DefaultLayout>
-      <div className="flex h-full w-full items-center justify-center">
-        <div className="rounded-large flex w-full max-w-sm flex-col gap-4 px-8 pt-6 pb-10">
-          <p className="pb-4 text-center text-3xl font-semibold">
-            {step === "credentials" ? "Sign In" : "Verify OTP"}
-          </p>
+      <div className="flex h-full w-full items-center justify-center px-4 py-8">
+        <div className="w-full max-w-md">
           {step === "credentials" ? (
             <CredentialsForm onCredentialsSubmit={handleCredentialsSubmit} />
           ) : (
-            <OTPForm email={email} />
+            <OTPForm email={email} onBack={handleBackToCredentials} />
           )}
         </div>
       </div>

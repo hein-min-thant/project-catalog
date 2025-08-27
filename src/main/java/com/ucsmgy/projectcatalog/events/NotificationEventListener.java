@@ -56,4 +56,33 @@ public class NotificationEventListener {
 
         notificationService.saveAndSendNotification(notification);
     }
+
+    @Async
+    @EventListener
+    public void handleReaction(ReactionEvent event) {
+        Notification notification = new Notification();
+        notification.setRecipientUserId(event.getProjectOwnerId());
+        notification.setMessage("Your project '" + event.getProjectTitle() + "' is reacted by" + event.getReactorName());
+        notification.setProjectId(event.getProjectId());
+        notification.setNotificationType("REACTION");
+        notification.setProjectTitle(event.getProjectTitle());
+        notification.setRejectionReason(null);
+
+        notificationService.saveAndSendNotification(notification);
+    }
+
+    @Async
+    @EventListener
+    public void handleProjectSubmit(ProjectSubmitEvent event) {
+        Notification notification = new Notification();
+        notification.setRecipientUserId(event.getProjectApproverId());
+        notification.setMessage( event.getProjectOwnerName()  + " submitted a project request.");
+        notification.setProjectId(event.getProjectId());
+        notification.setNotificationType("SUBMIT");
+        notification.setProjectTitle(event.getProjectTitle());
+        notification.setRejectionReason(null);
+
+        notificationService.saveAndSendNotification(notification);
+    }
 }
+

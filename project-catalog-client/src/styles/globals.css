@@ -202,15 +202,23 @@ body {
   }
 }
 
-/* 7)  Modern quill snow.css overrides ---------------------------- */
+.ql-editor h1 {
+  @apply text-3xl;
+}
+.ql-editor h2 {
+  @apply text-2xl;
+}
+
 .ql-container.ql-snow {
   border: 1px solid rgb(var(--border));
   border-radius: var(--radius);
 }
 .ql-editor {
   font-family: inherit;
+  white-space: normal;
   color: rgb(var(--foreground));
 }
+
 .ql-toolbar.ql-snow {
   border: 1px solid rgb(var(--border));
   border-bottom: none;
@@ -230,3 +238,5 @@ body {
 [data-radix-popper-content-wrapper] .bg-card {
   background-color: rgb(var(--background)) !important;
 }
+
+/* add this AFTER the Quill CSS import */

@@ -5,6 +5,10 @@ import com.ucsmgy.projectcatalog.dtos.ProjectRequestDTO;
 import com.ucsmgy.projectcatalog.dtos.ProjectResponseDTO;
 import com.ucsmgy.projectcatalog.entities.*;
 import com.ucsmgy.projectcatalog.entities.Project.Status;
+import com.ucsmgy.projectcatalog.events.CommentCreatedEvent;
+import com.ucsmgy.projectcatalog.events.ProjectApprovedEvent;
+import com.ucsmgy.projectcatalog.events.ProjectRejectedEvent;
+import com.ucsmgy.projectcatalog.events.ProjectSubmitEvent;
 import com.ucsmgy.projectcatalog.exceptions.EntityNotFoundException;
 import com.ucsmgy.projectcatalog.mappers.ProjectMapper;
 import com.ucsmgy.projectcatalog.repositories.*;
@@ -16,6 +20,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -41,6 +46,7 @@ public class ProjectService {
     private final ImgbbService imgbbService;
     private final TagRepository tagRepository;
     private final MemberRepository memberRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public ProjectResponseDTO create(ProjectRequestDTO dto, Long userId ,Map<String, String> membersMap) {
@@ -50,10 +56,8 @@ public class ProjectService {
 
             Project project = projectMapper.toEntity(dto);
             project.setUser(user);
-            
-            // Set supervisor and approval status based on user role
+
             if ("ADMIN".equals(user.getRole())) {
-                // Admin users don't need supervisor approval
                 project.setApprovalStatus(Project.ApprovalStatus.APPROVED);
                 project.setApprovedAt(LocalDateTime.now());
                 project.setApprovedBy(user);
@@ -79,6 +83,7 @@ public class ProjectService {
 
             Project savedProject = projectRepository.save(project);
 
+            eventPublisher.publishEvent(new ProjectSubmitEvent(this,project.getId(),project.getApprovedBy().getId(),user.getName(),project.getTitle(),project.getApprovedBy().getName()));
             return projectMapper.toDTO(savedProject);
 
         } catch (Exception e) {
@@ -87,12 +92,14 @@ public class ProjectService {
     }
 
     @Transactional
-    public ProjectResponseDTO update(Long projectId, ProjectRequestDTO dto, Map<String, String> membersMap) {
+    public ProjectResponseDTO update(Long projectId,Long userId, ProjectRequestDTO dto, Map<String, String> membersMap) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("Project with ID " + projectId + " not found"));
         projectMapper.updateFromDto(dto, project);
-
         applyDtoUpdatesAndUploads(project, dto ,membersMap);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User with ID " + userId + " not found"));
+        eventPublisher.publishEvent(new ProjectSubmitEvent(this,project.getId(),project.getApprovedBy().getId(),user.getName(),project.getTitle(), project.getApprovedBy().getName()));
 
         return projectMapper.toDTO(projectRepository.save(project));
     }
@@ -100,13 +107,12 @@ public class ProjectService {
     private void applyDtoUpdatesAndUploads(Project project, ProjectRequestDTO dto ,Map<String, String> membersMap) {
         if (dto.getBody() != null) {
             String processedBody = HtmlImageProcessor.processImages(dto.getBody(), imgbbService);
-            String sanitizedBody = HtmlSanitizer.sanitize(processedBody);
-            Document doc = Jsoup.parse(sanitizedBody);
+            Document doc = Jsoup.parse(processedBody);
             Element img= doc.selectFirst("img");
             String src = img != null ? img.attr("src") : null;
             project.setCoverImageUrl(src);
 
-            project.setBody(dto.getBody());
+            project.setBody(processedBody);
         }
         if (dto.getCategoryId() != null) {
             Category category = categoryRepository.findById(dto.getCategoryId())
@@ -328,12 +334,14 @@ public class ProjectService {
             !"ADMIN".equals(approver.getRole()) && !"SUPERVISOR".equals(approver.getRole())) {
             throw new RuntimeException("User is not authorized to approve this project");
         }
-        
+
         project.setApprovalStatus(Project.ApprovalStatus.APPROVED);
         project.setApprovedAt(LocalDateTime.now());
         project.setApprovedBy(approver);
         
         Project savedProject = projectRepository.save(project);
+        User projectOwner = project.getUser();
+        eventPublisher.publishEvent(new ProjectApprovedEvent(this, project.getId(), projectOwner.getId(), project.getTitle(), project.getApprovedBy().getName()));
         return projectMapper.toDTO(savedProject);
     }
 
@@ -344,8 +352,7 @@ public class ProjectService {
         
         User rejecter = userRepository.findById(rejecterId)
                 .orElseThrow(() -> new EntityNotFoundException("User with ID " + rejecterId + " not found"));
-        
-        // Check if the user is the supervisor or an admin
+
         if ((project.getSupervisor() == null || !rejecter.getId().equals(project.getSupervisor().getId())) && 
             !"ADMIN".equals(rejecter.getRole()) && !"SUPERVISOR".equals(rejecter.getRole())) {
             throw new RuntimeException("User is not authorized to reject this project");
@@ -354,8 +361,10 @@ public class ProjectService {
         project.setApprovalStatus(Project.ApprovalStatus.REJECTED);
         project.setApprovedAt(LocalDateTime.now());
         project.setApprovedBy(rejecter);
-        
         Project savedProject = projectRepository.save(project);
+
+        User projectOwner = project.getUser();
+        eventPublisher.publishEvent(new ProjectRejectedEvent(this, project.getId(), projectOwner.getId(), project.getTitle(), project.getApprovedBy().getName(),reason));
         return projectMapper.toDTO(savedProject);
     }
 

@@ -71,6 +71,7 @@ public class ProjectController {
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProjectResponseDTO> update(
             @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails,
             @ModelAttribute ProjectRequestDTO dto) throws JsonProcessingException {
 
         Map<String, String> membersMap = new HashMap<>();
@@ -79,7 +80,12 @@ public class ProjectController {
             membersMap = mapper.readValue(dto.getMembersJson(), new TypeReference<Map<String, String>>() {});
         }
 
-        ProjectResponseDTO updatedProject = projectService.update(id, dto , membersMap);
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Long userId = user.getId();
+
+        ProjectResponseDTO updatedProject = projectService.update(id,userId, dto , membersMap);
         return ResponseEntity.ok(updatedProject);
     }
 

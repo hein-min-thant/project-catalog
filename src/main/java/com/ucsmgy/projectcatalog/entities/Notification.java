@@ -1,5 +1,6 @@
 package com.ucsmgy.projectcatalog.entities;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,6 +29,7 @@ public class Notification {
     private Long commentId;
 
     @Column(name = "notification_type", nullable = false)
+    @JsonProperty("notificationType")
     private String notificationType = "COMMENT";
 
     @Column(name = "project_title")
@@ -46,6 +48,7 @@ public class Notification {
     private String rejectionReason;
 
     @Column(name = "is_read", nullable = false)
+    @JsonProperty("isRead")
     private boolean isRead = false;
 
     @Column(name = "created_at", nullable = false)

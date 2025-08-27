@@ -99,7 +99,7 @@ const ChatApp: React.FC<ChatAppProps> = ({
   }, [conversationHistory]);
 
   return (
-    <div className="flex flex-col h-screen bg-card/60 backdrop-blur-md">
+    <div className="flex flex-col h-[calc(100vh-64px)]  bg-card/60 backdrop-blur-md">
       {/* Header */}
       <header className="shrink-0 bg-card/60 backdrop-blur-md border-b border-border px-4 py-3 flex items-center justify-between">
         <h3 className="text-lg font-bold text-cyan-500">Project Assistant</h3>
@@ -184,9 +184,6 @@ const ChatApp: React.FC<ChatAppProps> = ({
                 DeepSeek Chat
               </SelectItem>
               <SelectItem value="qwen/qwen3-coder:free">Qwen Coder</SelectItem>
-              <SelectItem value="cognitivecomputations/dolphin-mistral-24b-venice-edition:free">
-                Dolphin Mistral
-              </SelectItem>
               <SelectItem value="tngtech/deepseek-r1t2-chimera:free">
                 DeepSeek R1T2 Chimera
               </SelectItem>

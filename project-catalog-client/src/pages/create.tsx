@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css"; // import Quill's CSS
+import "react-quill/dist/quill.snow.css";
 import { Spinner } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import { useNavigate } from "react-router-dom";
@@ -14,9 +14,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea"; // Import Textarea
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -25,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import api from "@/config/api"; // Import the axios instance
+import api from "@/config/api";
 import { useSupervisors } from "@/hooks/useSupervisors";
 
 // Define the shape of a member
@@ -39,6 +40,7 @@ interface ProjectRequestDTO {
   title: string;
   description: string;
   body: string;
+  benefits: string;
   objectives: string;
   githubLink: string;
   coverImageUrl: string;
@@ -60,6 +62,7 @@ const CreateProjectPage = () => {
     title: "",
     description: "",
     body: "",
+    benefits: "",
     objectives: "",
     githubLink: "",
     coverImageUrl: "",
@@ -68,12 +71,13 @@ const CreateProjectPage = () => {
     categoryId: "",
     supervisorId: "",
     tags: [],
-    members: [{ name: "", rollNumber: "" }], // Start with one member field
+    members: [{ name: "", rollNumber: "" }],
   });
   const [projectFiles, setProjectFiles] = useState<File[]>([]);
   const [newTag, setNewTag] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
+  const [showProjectInfo, setShowProjectInfo] = useState(true);
   const navigate = useNavigate();
 
   // Fetch supervisors for dropdown
@@ -116,7 +120,6 @@ const CreateProjectPage = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -244,8 +247,7 @@ const CreateProjectPage = () => {
         setSubmitMessage("Project created successfully!");
         const newProjectId = response.data.id;
 
-        navigate(`/projects/${newProjectId}`); // Wait for 1.5 seconds to show the message
-        // Reset form or redirect
+        navigate(`/projects/${newProjectId}`);
       } else {
         setSubmitMessage(`Failed to create project: ${response.statusText}`);
       }
@@ -253,14 +255,10 @@ const CreateProjectPage = () => {
       const err = error as any;
 
       if (err.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
         setSubmitMessage(`Failed to create project: ${err.response.data}`);
       } else if (err.request) {
-        // The request was made but no response was received
         setSubmitMessage("Failed to create project: No response from server.");
       } else {
-        // Something happened in setting up the request that triggered an Error
         setSubmitMessage(`An error occurred during submission: ${err.message}`);
       }
       console.error("Submission error:", err);
@@ -269,23 +267,32 @@ const CreateProjectPage = () => {
     }
   };
 
-  // Define the custom toolbar options
   const modules = useMemo(
     () => ({
       toolbar: [
-        [{ header: "1" }, { header: "2" }, { header: [3, 4, 5, 6] }],
-        ["bold", "italic", "underline", "strike"], // toggled buttons
-        ["blockquote", "code-block"],
-        [{ list: "ordered" }, { list: "bullet" }],
-        [{ script: "sub" }, { script: "super" }], // superscript/subscript
-        [{ indent: "-1" }, { indent: "+1" }], // outdent/indent
-        [{ direction: "rtl" }], // text direction
-        [{ size: ["small", false, "large", "huge"] }], // custom dropdown
-        [{ color: [] }, { background: [] }], // dropdown with defaults from theme
-        [{ font: [] }],
-        [{ align: [] }],
-        ["link", "image", "video"],
-        ["clean"], // remove formatting button
+        { header: "1" },
+        { header: "2" },
+        { header: "3" },
+        "bold",
+        "italic",
+        "underline",
+        "strike",
+        "blockquote",
+        "code-block",
+        { list: "ordered" },
+        { list: "bullet" },
+        { script: "sub" },
+        { script: "super" },
+        { indent: "-1" },
+        { indent: "+1" },
+        { direction: "rtl" },
+        { align: "" },
+        { align: "center" },
+        { align: "right" },
+        { align: "justify" },
+        "link",
+        "image",
+        "video",
       ],
     }),
     []
@@ -299,7 +306,7 @@ const CreateProjectPage = () => {
         .ql-snow .ql-toolbar {
           border: none;
           position: sticky;
-          top: 0; /* Stick to the top of the nearest scrolling ancestor */
+          top: 0;
           z-index: 10;
           background-color: white;
         }
@@ -307,9 +314,9 @@ const CreateProjectPage = () => {
         .dark .ql-snow .ql-toolbar {
           background-color : rgb(30, 41, 59 );
         }
-        
+
         .dark .ql-toolbar .ql-stroke {
-        stroke: white; /* Red color for icon strokes */
+        stroke: white;
     }
         .dark .ql-toolbar .ql-fill{
           fill : white;
@@ -326,367 +333,533 @@ const CreateProjectPage = () => {
           border: none;
           font-size: 16px;
           font-family: "Geist", sans-serif;
-        
+
         }
         .ql-editor {
           font-family: "Geist", sans-serif;
-          -ms-overflow-style: none;  /* IE and Edge */
+          -ms-overflow-style: none;
           scrollbar-width: none;
           }
         .ql-container {
           border-radius: 0.5rem;
         }
       `}</style>
-      <div className="flex flex-col h-full bg-background p-6 md:p-10">
-        <div className="container mx-auto max-w-7xl">
-          <h1 className="text-3xl font-bold mb-2 text-center text-cyan-500">
-            Create New Project
-          </h1>
-          <p className="text-center mb-8">
-            Fill in the details to add a new project to the catalog.
-          </p>
-          <form
-            className="grid grid-cols-1 lg:grid-cols-3 gap-10"
-            onSubmit={handleSubmit}
-          >
-            {/* Left Column - General Info */}
-            <div className="flex flex-col gap-6 lg:col-span-1">
-              <Card className="p-6">
-                <CardHeader className="p-0 mb-4">
-                  <CardTitle className="text-xl font-bold text-cyan-500">
-                    General Information
-                  </CardTitle>
-                  <CardDescription>
-                    Provide basic details about the project.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-0 space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="title">Project Title</Label>
-                    <Input
-                      required
-                      id="title"
-                      name="title"
-                      placeholder="e.g., AI-Powered Chatbot"
-                      value={formData.title}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Short Description</Label>
-                    <Textarea
-                      required
-                      id="description"
-                      name="description"
-                      placeholder="A brief summary of the project"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="objectives">Objectives</Label>
-                    <Textarea
-                      required
-                      id="objectives"
-                      name="objectives"
-                      placeholder="What the project aims to achieve"
-                      value={formData.objectives}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="githubLink">GitHub Link (Optional)</Label>
-                    <Input
-                      id="githubLink"
-                      name="githubLink"
-                      placeholder="https://github.com/..."
-                      value={formData.githubLink}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
 
-              <Card className="p-6">
-                <CardHeader className="p-0 mb-4">
-                  <CardTitle className="text-xl font-bold text-cyan-500">
-                    Project Details
-                  </CardTitle>
-                  <CardDescription>
-                    Specify the project&apos;s academic context and status.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-0 space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="academic_year">Academic Year</Label>
-                    <Select
-                      required
-                      value={formData.academic_year}
-                      onValueChange={(value) =>
-                        handleSelectChange("academic_year", value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select academic year" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {academicYears.map((year) => (
-                          <SelectItem key={year.key} value={year.key}>
-                            {year.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="student_year">Student Year</Label>
-                    <Select
-                      required
-                      value={formData.student_year}
-                      onValueChange={(value) =>
-                        handleSelectChange("student_year", value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select student year" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {studentYears.map((year) => (
-                          <SelectItem key={year.key} value={year.key}>
-                            {year.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="categoryId">Category</Label>
-                    <Select
-                      required
-                      value={formData.categoryId}
-                      onValueChange={(value) =>
-                        handleSelectChange("categoryId", value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category.key} value={category.key}>
-                            {category.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="supervisorId">Supervisor</Label>
-                    <Select
-                      value={formData.supervisorId}
-                      onValueChange={(value) =>
-                        handleSelectChange("supervisorId", value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a supervisor (optional)" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="null-supervisor">
-                          No supervisor
-                        </SelectItem>
-                        {isLoadingSupervisors ? (
-                          <SelectItem disabled value="loading-placeholder">
-                            Loading supervisors...
-                          </SelectItem>
-                        ) : (
-                          supervisors?.map((supervisor) => (
-                            <SelectItem
-                              key={supervisor.id}
-                              value={supervisor.id.toString()}
-                            >
-                              {supervisor.name}
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </CardContent>
-              </Card>
+      <div className={`flex flex-col min-h-screen mx-auto bg-background ${showProjectInfo ? "" :"max-w-5xl"}`}>
+        <div className="container mx-auto max-w-7xl p-4 md:p-6 lg:p-8">
+          {/* Enhanced Header Section */}
+          <div className="text-center space-y-6 mb-8">
+            <div className="flex justify-center mb-6">
+              <div className="p-4 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 dark:from-cyan-500/30 dark:to-blue-500/30 rounded-2xl">
+                <Icon className="h-12 w-12 text-cyan-500" icon="mdi:plus-circle" />
+              </div>
+            </div>
+            <div className="flex justify-center items-center gap-4">
+              <div>
+                <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent mb-4">
+                  Create New Project
+                </h1>
+                <p className="text-lg text-default-600 max-w-2xl mx-auto">
+                  Bring your innovative ideas to life by creating a comprehensive project entry
+                </p>
+              </div>
+              
+            </div>
+          </div>
 
-              <Card className="p-6 ">
-                <CardHeader className="p-0 mb-4">
-                  <CardTitle className="text-xl font-bold text-cyan-500">
-                    Tags
-                  </CardTitle>
-                  <CardDescription>
-                    Add keywords related to the project. Press Enter to add a
-                    tag.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-0 space-y-4">
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="e.g., react, spring boot"
-                      value={newTag}
-                      onChange={(e) => setNewTag(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleAddTag();
-                        }
-                      }}
-                    />
-                    <Button type="button" onClick={handleAddTag}>
-                      Add
-                    </Button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {formData.tags.map((tag, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-1 dark:text-white bg-cyan-500 rounded-full px-3 py-2 text-sm"
-                      >
-                        {tag}
-                        <Button
-                          className="p-0 w-auto h-auto"
-                          type="button"
-                          variant="ghost"
-                          onClick={() => handleRemoveTag(index)}
-                        >
-                          <Icon className="text-xs" icon="mdi:close" />
-                        </Button>
+          <div className="mb-4">
+          <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowProjectInfo(!showProjectInfo)}
+                className="border-cyan-500 text-cyan-600 hover:bg-cyan-50 dark:hover:bg-cyan-950/50"
+              >
+                <Icon 
+                  icon={showProjectInfo ? "mdi:eye-off" : "mdi:eye"} 
+                  className="mr-2" 
+                />
+                {showProjectInfo ? "Hide" : "Show"} General Information Column
+              </Button>
+          </div>
+
+          {/* Form */}
+          <form className="space-y-8" onSubmit={handleSubmit}>
+            <div className={`grid gap-8 ${showProjectInfo ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-1'}`}>
+              {/* Left Column - General Info */}
+              {showProjectInfo && (
+                <div className="space-y-6 lg:col-span-1">
+                  <Card className="bg-gradient-to-br from-background to-gray-50/50 dark:to-gray-800/50 border-border/50">
+                    <CardHeader>
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-cyan-500/10 rounded-lg">
+                          <Icon icon="mdi:information-outline" className="text-xl text-cyan-500" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-xl">General Information</CardTitle>
+                          <CardDescription>
+                            Basic project details and objectives
+                          </CardDescription>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="p-6">
-                <CardHeader className="p-0 mb-4">
-                  <CardTitle className="text-xl font-bold text-cyan-500">
-                    Team Members
-                  </CardTitle>
-                  <CardDescription>
-                    Add team members with their name and roll number.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-0 space-y-4">
-                  {formData.members.map((member, index) => (
-                    <div key={index} className="flex gap-2 items-end">
-                      <div className="flex-1 space-y-2">
-                        <Label htmlFor={`name-${index}`}>Name</Label>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="title" className="font-medium">Project Title *</Label>
                         <Input
                           required
-                          id={`name-${index}`}
-                          name="name"
-                          placeholder="Member Name"
-                          value={member.name}
-                          onChange={(e) => handleMemberChange(index, e)}
+                          id="title"
+                          name="title"
+                          placeholder="e.g., AI-Powered Chatbot"
+                          value={formData.title}
+                          onChange={handleInputChange}
+                          className="border-cyan-200 dark:border-cyan-800 focus:border-cyan-500 focus:ring-cyan-500/20"
                         />
                       </div>
-                      <div className="flex-1 space-y-2">
-                        <Label htmlFor={`rollNumber-${index}`}>Roll No.</Label>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="description" className="font-medium">Short Description *</Label>
+                        <Textarea
+                          required
+                          id="description"
+                          name="description"
+                          placeholder="Brief summary of your project"
+                          value={formData.description}
+                          onChange={handleInputChange}
+                          className="border-cyan-200 dark:border-cyan-800 focus:border-cyan-500 focus:ring-cyan-500/20 min-h-[100px]"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="objectives" className="font-medium">Objectives *</Label>
+                        <Textarea
+                          required
+                          id="objectives"
+                          name="objectives"
+                          placeholder="What does your project aim to achieve?"
+                          value={formData.objectives}
+                          onChange={handleInputChange}
+                          className="border-cyan-200 dark:border-cyan-800 focus:border-cyan-500 focus:ring-cyan-500/20 min-h-[100px]"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="benefits" className="font-medium">Benefits (Optional)</Label>
+                        <Textarea
+                          id="benefits"
+                          name="benefits"
+                          placeholder="How will this project benefit users or the community?"
+                          value={formData.benefits}
+                          onChange={handleInputChange}
+                          className="border-cyan-200 dark:border-cyan-800 focus:border-cyan-500 focus:ring-cyan-500/20 min-h-[80px]"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="githubLink" className="font-medium">GitHub Repository (Optional)</Label>
                         <Input
-                          id={`rollNumber-${index}`}
-                          name="rollNumber"
-                          placeholder="Roll Number"
-                          value={member.rollNumber}
-                          onChange={(e) => handleMemberChange(index, e)}
+                          id="githubLink"
+                          name="githubLink"
+                          placeholder="https://github.com/username/project"
+                          value={formData.githubLink}
+                          onChange={handleInputChange}
+                          className="border-cyan-200 dark:border-cyan-800 focus:border-cyan-500 focus:ring-cyan-500/20"
                         />
                       </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-gradient-to-br from-background to-gray-50/50 dark:to-gray-800/50 border-border/50">
+                    <CardHeader>
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-cyan-500/10 rounded-lg">
+                          <Icon icon="mdi:cog-outline" className="text-xl text-cyan-500" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-xl">Project Settings</CardTitle>
+                          <CardDescription>
+                            Academic details and categorization
+                          </CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="academic_year" className="font-medium">Academic Year *</Label>
+                        <Select
+                          required
+                          value={formData.academic_year}
+                          onValueChange={(value) =>
+                            handleSelectChange("academic_year", value)
+                          }
+                        >
+                          <SelectTrigger className="bg-background/80 border-cyan-200 dark:border-cyan-800 focus:border-cyan-500 focus:ring-cyan-500/20">
+                            <SelectValue placeholder="Select academic year" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background border border-border shadow-lg">
+                            {academicYears.map((year) => (
+                              <SelectItem key={year.key} value={year.key}>
+                                {year.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="student_year" className="font-medium">Student Year *</Label>
+                        <Select
+                          required
+                          value={formData.student_year}
+                          onValueChange={(value) =>
+                            handleSelectChange("student_year", value)
+                          }
+                        >
+                          <SelectTrigger className="bg-background/80 border-cyan-200 dark:border-cyan-800 focus:border-cyan-500 focus:ring-cyan-500/20">
+                            <SelectValue placeholder="Select student year" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background border border-border shadow-lg">
+                            {studentYears.map((year) => (
+                              <SelectItem key={year.key} value={year.key}>
+                                {year.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="categoryId" className="font-medium">Category *</Label>
+                        <Select
+                          required
+                          value={formData.categoryId}
+                          onValueChange={(value) =>
+                            handleSelectChange("categoryId", value)
+                          }
+                        >
+                          <SelectTrigger className="bg-background/80 border-cyan-200 dark:border-cyan-800 focus:border-cyan-500 focus:ring-cyan-500/20">
+                            <SelectValue placeholder="Select a category" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background border border-border shadow-lg">
+                            {categories.map((category) => (
+                              <SelectItem key={category.key} value={category.key}>
+                                {category.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="supervisorId" className="font-medium">Supervisor (Optional)</Label>
+                        <Select
+                          value={formData.supervisorId}
+                          onValueChange={(value) =>
+                            handleSelectChange("supervisorId", value)
+                          }
+                        >
+                          <SelectTrigger className="bg-background/80 border-cyan-200 dark:border-cyan-800 focus:border-cyan-500 focus:ring-cyan-500/20">
+                            <SelectValue placeholder="Select a supervisor" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background border border-border shadow-lg">
+                            <SelectItem value="null-supervisor">
+                              No supervisor
+                            </SelectItem>
+                            {isLoadingSupervisors ? (
+                              <SelectItem disabled value="loading-placeholder">
+                                Loading supervisors...
+                              </SelectItem>
+                            ) : (
+                              supervisors?.map((supervisor) => (
+                                <SelectItem
+                                  key={supervisor.id}
+                                  value={supervisor.id.toString()}
+                                >
+                                  {supervisor.name}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-gradient-to-br from-background to-gray-50/50 dark:to-gray-800/50 border-border/50">
+                    <CardHeader>
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-cyan-500/10 rounded-lg">
+                          <Icon icon="mdi:tag-multiple" className="text-xl text-cyan-500" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-xl">Technologies & Tags</CardTitle>
+                          <CardDescription>
+                            Add relevant tags and technologies
+                          </CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label className="font-medium">Add Tags</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="e.g., react, spring, ai"
+                            value={newTag}
+                            onChange={(e) => setNewTag(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                handleAddTag();
+                              }
+                            }}
+                            className="border-cyan-200 dark:border-cyan-800 focus:border-cyan-500 focus:ring-cyan-500/20"
+                          />
+                          <Button 
+                            type="button" 
+                            onClick={handleAddTag}
+                            variant="outline"
+                            className="border-cyan-500 text-cyan-600 hover:bg-cyan-50 dark:hover:bg-cyan-950/50"
+                          >
+                            Add
+                          </Button>
+                        </div>
+                        <p className="text-xs text-default-600">Press Enter or click Add to include tags</p>
+                      </div>
+
+                      {formData.tags.length > 0 && (
+                        <div className="space-y-2">
+                          <Label className="font-medium">Selected Tags</Label>
+                          <div className="flex flex-wrap gap-2">
+                            {formData.tags.map((tag, index) => (
+                              <Badge key={index} className="bg-cyan-500/10 text-cyan-600 border-cyan-500/20 hover:bg-cyan-500/20 transition-colors cursor-pointer">
+                                <span>{tag}</span>
+                                <Button
+                                  className="ml-1 p-0 w-auto h-auto hover:bg-transparent"
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleRemoveTag(index)}
+                                >
+                                  <Icon className="text-xs" icon="mdi:close" />
+                                </Button>
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-gradient-to-br from-background to-gray-50/50 dark:to-gray-800/50 border-border/50">
+                    <CardHeader>
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-cyan-500/10 rounded-lg">
+                          <Icon icon="mdi:account-group" className="text-xl text-cyan-500" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-xl">Team Members</CardTitle>
+                          <CardDescription>
+                            Add your project team members
+                          </CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {formData.members.map((member, index) => (
+                        <div key={index} className="p-3 bg-background/50 rounded-lg border border-border/50 space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-medium text-default-600">Member {index + 1}</span>
+                            {formData.members.length > 1 && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRemoveMember(index)}
+                                className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/50"
+                              >
+                                <Icon icon="mdi:close" className="text-sm" />
+                              </Button>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                              <Label htmlFor={`name-${index}`} className="text-xs font-medium">Name *</Label>
+                              <Input
+                                required
+                                id={`name-${index}`}
+                                name="name"
+                                placeholder="Full Name"
+                                value={member.name}
+                                onChange={(e) => handleMemberChange(index, e)}
+                                className="border-cyan-200 dark:border-cyan-800 focus:border-cyan-500 focus:ring-cyan-500/20"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor={`rollNumber-${index}`} className="text-xs font-medium">Roll Number</Label>
+                              <Input
+                                id={`rollNumber-${index}`}
+                                name="rollNumber"
+                                placeholder="e.g., CS001"
+                                value={member.rollNumber}
+                                onChange={(e) => handleMemberChange(index, e)}
+                                className="border-cyan-200 dark:border-cyan-800 focus:border-cyan-500 focus:ring-cyan-500/20"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
                       <Button
-                        className="self-end"
                         type="button"
-                        variant="ghost"
-                        onClick={() => handleRemoveMember(index)}
+                        variant="outline"
+                        onClick={handleAddMember}
+                        className="w-full border-cyan-500 text-cyan-600 hover:bg-cyan-50 dark:hover:bg-cyan-950/50"
                       >
-                        <Icon className="text-lg" icon="mdi:close" />
+                        <Icon className="mr-2" icon="mdi:plus" />
+                        Add Team Member
                       </Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-gradient-to-br from-background to-gray-50/50 dark:to-gray-800/50 border-border/50">
+                    <CardHeader>
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-cyan-500/10 rounded-lg">
+                          <Icon icon="mdi:file-upload" className="text-xl text-cyan-500" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-xl">Project Files</CardTitle>
+                          <CardDescription>
+                            Upload documents, presentations, or other files
+                          </CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <Input
+                          multiple
+                          id="projectFiles"
+                          name="projectFiles"
+                          type="file"
+                          onChange={handleFileChange}
+                          className="border-cyan-200 dark:border-cyan-800 focus:border-cyan-500 focus:ring-cyan-500/20"
+                        />
+                        <p className="text-xs text-default-600">
+                          Supported formats: PDF, DOC, PPT, Images, and more
+                        </p>
+                        {projectFiles.length > 0 && (
+                          <div className="space-y-1">
+                            <Label className="text-sm font-medium">Selected Files ({projectFiles.length})</Label>
+                            <div className="space-y-1">
+                              {projectFiles.map((file, index) => (
+                                <div key={index} className="flex items-center gap-2 text-sm text-default-600 bg-background/50 p-2 rounded">
+                                  <Icon icon="mdi:file-document-outline" className="text-cyan-500" />
+                                  <span className="truncate">{file.name}</span>
+                                  <span className="text-xs text-default-600">({(file.size / 1024 / 1024).toFixed(1)} MB)</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {/* Right Column - Project Body Editor */}
+              <div className={`${showProjectInfo ? 'lg:col-span-2' : 'w-full'}`}>
+                <Card className="bg-gradient-to-br from-background to-gray-50/50 dark:to-gray-800/50 border-border/50 h-full">
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-cyan-500/10 rounded-lg">
+                        <Icon icon="mdi:file-document-edit-outline" className="text-xl text-cyan-500" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-xl">Project Report</CardTitle>
+                        <CardDescription>
+                          Write your comprehensive project documentation
+                        </CardDescription>
+                      </div>
                     </div>
-                  ))}
-                  <Button
-                    className="w-full"
-                    type="button"
-                    onClick={handleAddMember}
-                  >
-                    <Icon className="mr-2" icon="mdi:plus" /> Add Member
-                  </Button>
-                </CardContent>
-              </Card>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="bg-gradient-to-br from-cyan-50/50 to-blue-50/50 dark:from-cyan-950/50 dark:to-blue-950/50 p-4 rounded-lg border border-cyan-200/50 dark:border-cyan-800/50">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Icon icon="mdi:lightbulb-on" className="text-cyan-500" />
+                          <span className="text-sm font-medium text-cyan-700 dark:text-cyan-300">Tips for Writing</span>
+                        </div>
+                        <ul className="text-sm text-default-600 space-y-1">
+                          <li>• Use clear headings and sections</li>
+                          <li>• Include methodology and results</li>
+                          <li>• Add code snippets with syntax highlighting</li>
+                          <li>• Use images and diagrams where helpful</li>
+                        </ul>
+                      </div>
 
-              <Card className="p-6 ">
-                <CardHeader className="p-0 mb-4">
-                  <CardTitle className="text-xl font-bold text-cyan-500">
-                    Project Files
-                  </CardTitle>
-                  <CardDescription>
-                    Upload files related to the project (e.g., documents,
-                    presentations).
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <Input
-                    multiple
-                    id="projectFiles"
-                    name="projectFiles"
-                    type="file"
-                    onChange={handleFileChange}
-                  />
-                </CardContent>
-              </Card>
-            </div>
+                      <div className="h-[600px] border border-cyan-200 dark:border-cyan-800 rounded-lg overflow-hidden">
+                        <ReactQuill
+                          key="quill-editor"
+                          className="h-full"
+                          modules={modules}
+                          placeholder="Start writing your project report here... Include methodology, results, challenges faced, and learnings..."
+                          theme="snow"
+                          value={formData.body}
+                          onChange={handleQuillChange}
+                        />
+                      </div>
 
-            {/* Right Column - Body/Quill Editor */}
-            <div className="flex flex-col gap-6 lg:col-span-2">
-              <Card className="p-6 h-full flex flex-col ">
-                <CardHeader className="p-0 mb-4">
-                  <CardTitle className="text-xl font-bold text-cyan-500">
-                    Project Body
-                  </CardTitle>
-                  <CardDescription>
-                    Write the full, detailed content of the project report.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1 p-0 flex flex-col">
-                  <div className="h-[700px] relative overflow-y-auto rounded-lg border hide-scrollbar">
-                    <ReactQuill
-                      className="flex-1 min-h-[500px] mb-4"
-                      modules={modules}
-                      placeholder="Start writing the project details here..."
-                      theme="snow"
-                      value={formData.body}
-                      onChange={handleQuillChange}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                      <div className="text-sm text-default-600 bg-background/50 p-3 rounded-lg border border-border/50">
+                        <Icon icon="mdi:information-outline" className="inline mr-1" />
+                        Your project report will be displayed with rich formatting including code syntax highlighting and embedded media.
+                      </div>
+                      
 
-            <div className="lg:col-span-3">
-              <Separator className="my-6" />
-              <div className="flex justify-end items-center gap-4">
-                {submitMessage && (
-                  <span
-                    className={`text-sm ${submitMessage.includes("successfully") ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
-                  >
-                    {submitMessage}
-                  </span>
-                )}
-                <Button
-                  className="w-full lg:w-auto"
-                  disabled={isSubmitting}
-                  type="submit"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Spinner className="mr-2" size="sm" /> Creating...
-                    </>
-                  ) : (
-                    "Submit Project"
-                  )}
-                </Button>
+                      {/* Create Button - Moved under editor */}
+                      <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 dark:from-cyan-500/10 dark:to-blue-500/10 rounded-xl p-6 border border-cyan-200/50 dark:border-cyan-800/50 mt-6">
+                        <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+                          <div className="text-center">
+                            <h3 className="text-lg font-semibold text-foreground mb-2">Ready to Create Your Project?</h3>
+                            <p className="text-default-600 text-sm">Review your content and submit your project</p>
+                          </div>
+                          <div className="flex gap-3">
+                            {submitMessage && (
+                              <Badge 
+                                className={`px-4 py-2 ${
+                                  submitMessage.includes("successfully") 
+                                    ? "bg-green-500/10 text-green-600 border-green-500/20" 
+                                    : "bg-red-500/10 text-red-600 border-red-500/20"
+                                }`}
+                              >
+                                {submitMessage}
+                              </Badge>
+                            )}
+                            <Button
+                              size="lg"
+                              className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                              disabled={isSubmitting}
+                              type="submit"
+                            >
+                              {isSubmitting ? (
+                                <>
+                                  <Spinner size="sm" className="mr-2" />
+                                  Creating Project...
+                                </>
+                              ) : (
+                                <>
+                                  <Icon className="mr-2" icon="mdi:plus" />
+                                  Submit Project
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           </form>

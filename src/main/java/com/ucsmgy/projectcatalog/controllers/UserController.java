@@ -5,10 +5,7 @@ import com.ucsmgy.projectcatalog.dtos.*;
 import com.ucsmgy.projectcatalog.entities.User;
 import com.ucsmgy.projectcatalog.exceptions.DuplicateUserException;
 import com.ucsmgy.projectcatalog.exceptions.UserNotFoundException;
-import com.ucsmgy.projectcatalog.services.LoginService;
-import com.ucsmgy.projectcatalog.services.RegistrationService;
-import com.ucsmgy.projectcatalog.services.UserRoleService;
-import com.ucsmgy.projectcatalog.services.UserService;
+import com.ucsmgy.projectcatalog.services.*;
 import com.ucsmgy.projectcatalog.util.JwtUtil;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -20,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
@@ -34,6 +32,7 @@ public class UserController {
     private final LoginService loginService;
     private final UserDetailsService userDetailsService;
     private final JwtUtil jwtUtil;
+    private final ImgbbService imgbbService;
     private final UserRoleService userRoleService;
 
     @PostMapping("/login/request-code")
@@ -55,6 +54,37 @@ public class UserController {
             return ResponseEntity.status(401).body(e.getMessage());
         }
     }
+
+
+
+@PostMapping("/upload-avatar")
+public ResponseEntity<Map<String, String>> uploadAvatar(
+        @RequestParam("image") MultipartFile file,
+        Authentication authentication) {
+    try {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "File is empty"));
+        }
+
+        // Convert file to base64
+        byte[] fileBytes = file.getBytes();
+        String base64Image = java.util.Base64.getEncoder().encodeToString(fileBytes);
+        String mimeType = file.getContentType();
+
+        // Add data URL prefix
+        String dataUrl = "data:" + mimeType + ";base64," + base64Image;
+
+        // Upload to imgbb
+        String imageUrl = imgbbService.uploadBase64Image(dataUrl);
+
+        return ResponseEntity.ok(Map.of("url", imageUrl));
+    } catch (Exception e) {
+        System.out.println("Avatar upload failed" + e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to upload image: " + e.getMessage()));
+    }
+}
+
 
     @GetMapping("/supervisors")
     public ResponseEntity<List<User>> getAllSupervisors() {

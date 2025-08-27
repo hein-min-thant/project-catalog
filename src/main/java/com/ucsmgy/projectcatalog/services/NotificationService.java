@@ -5,6 +5,7 @@ import com.ucsmgy.projectcatalog.entities.User;
 import com.ucsmgy.projectcatalog.repositories.NotificationRepository;
 import com.ucsmgy.projectcatalog.repositories.UserRepository;
 import com.ucsmgy.projectcatalog.config.WebSocketHandler;
+import jakarta.transaction.Transactional;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -66,6 +67,7 @@ public class NotificationService {
         notificationRepository.delete(notification);
     }
 
+    @Transactional
     public void clearAllNotifications(String userEmail) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));

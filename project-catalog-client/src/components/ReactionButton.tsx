@@ -58,12 +58,11 @@ export const ReactionButton = ({ projectId, userId }: ReactionButtonProps) => {
 
   if (isLoading) {
     return (
-      <Button disabled className="gap-1 text-sm" size="default" variant="ghost">
+      <Button disabled className="gap-1 text-sm p-0 h-auto bg-transparent border-none" size="default" variant="ghost">
         <Icon
-          className="text-xl text-gray-400 dark:text-gray-600"
+          className="text-lg text-gray-400 dark:text-gray-600"
           icon="mdi:heart-outline"
         />
-        <span className="text-gray-500 dark:text-gray-500">...</span>
       </Button>
     );
   }
@@ -75,35 +74,58 @@ export const ReactionButton = ({ projectId, userId }: ReactionButtonProps) => {
   const isReacted = reactionStatus?.reacted;
   const totalReactions = reactionStatus?.totalReactions || 0;
 
-  return (
+  // src/components/ReactionButton.tsx  (only the return block changes)
+
+return (
+  <div className="flex items-center gap-2">
     <Button
       className={`
-        gap-1 
-        text-sm 
-        font-semibold 
-        transition-all duration-200 
-        shadow-sm 
-        border-1 border-rose-500
-        // Conditionals for Active (Reacted) vs. Inactive (Outline) state
-        ${
-          isReacted
-            ? "bg-rose-500 hover:bg-rose-600 text-white dark:bg-rose-600 dark:hover:bg-rose-700 dark:text-white"
-            : "bg-transparent text-gray-600 hover:bg-rose-50 dark:text-gray-400 dark:hover:bg-rose-900/30"
-        }
+        hover:bg-transparent
+        shadow-lg
+        group
+        relative
+        flex items-center justify-center rounded-lg
+        bg-transprent border border-rose-500
+        ${isReacted ? "bg-rose-500" : ""}
       `}
+      size="lg"
       disabled={toggleReactionMutation.isPending}
-      variant={isReacted ? "default" : "ghost"}
       onClick={handleToggleReaction}
+      aria-label={isReacted ? "Unlike" : "Like"}
     >
+      {/* subtle ripple on click */}
+      <span
+        className={`
+          absolute inset-0 rounded-full
+          bg-rose-400/20
+          scale-0 group-active:scale-100
+          transition-transform duration-300
+        `}
+      />
+
+      {/* oversized heart */}
       <Icon
-        className={`text-xl transition-transform duration-100 ${isReacted ? "text-white dark:text-white" : "text-rose-500 dark:text-rose-400 group-hover:text-rose-600"}`}
+        className={`
+          z-10
+          text-4xl
+          transition-all duration-200 ease-in-out
+          ${isReacted ? "text-white" : "text-rose-500"}
+        `}
         icon={isReacted ? "mdi:heart" : "mdi:heart-outline"}
       />
+       {totalReactions > 0 && (
       <span
-        className={`${isReacted ? "text-white dark:text-white" : "text-foreground dark:text-foreground"}`}
+        className={`
+          text-sm font-bold ${isReacted ? "text-white" : "text-rose-500"}
+        `}
       >
         {totalReactions}
       </span>
+    )}
     </Button>
-  );
+
+    {/* counter badge */}
+   
+  </div>
+);
 };

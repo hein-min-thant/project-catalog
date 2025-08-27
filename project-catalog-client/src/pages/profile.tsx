@@ -1,9 +1,11 @@
 // src/pages/profile/index.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Icon } from "@iconify/react";
+import { Camera, Upload, X, Check, Edit3, User, Mail, FileText } from "lucide-react";
 
 import { Project } from "./projects";
 
@@ -13,10 +15,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { title } from "@/components/primitives";
 import DefaultLayout from "@/layouts/default";
 import api from "@/config/api";
 import ProjectCard from "@/components/ProjectCard";
+
 interface UserProfile {
   id: number;
   name: string;
@@ -34,7 +38,6 @@ interface ProjectResponseDTO {
 }
 
 // --- Change Password Form Component ---
-// You can move this into its own file (e.g., src/components/ChangePasswordForm.tsx)
 interface ChangePasswordFormProps {
   userId: number;
 }
@@ -132,12 +135,15 @@ export default function ProfilePage() {
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [formData, setFormData] = useState<Omit<UserProfile, "id">>({
     name: "",
     email: "",
     bio: "",
     avatarUrl: "",
   });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (currentUser) {
@@ -160,6 +166,58 @@ export default function ProfilePage() {
     const { name, value } = e.target;
 
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast("Error", {
+        description: "Please select an image file.",
+      });
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast("Error", {
+        description: "Image size must be less than 2MB.",
+      });
+      return;
+    }
+
+    setUploadingAvatar(true);
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append('image', file);
+
+      const response = await api.post('/users/upload-avatar', formDataUpload, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const imageUrl = response.data.url;
+      setFormData(prev => ({ ...prev, avatarUrl: imageUrl }));
+      toast("Success", {
+        description: "Avatar uploaded successfully!",
+      });
+    } catch (error: any) {
+      toast("Error", {
+        description: error.response?.data?.error || "Failed to upload avatar.",
+      });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleRemoveAvatar = () => {
+    setFormData(prev => ({ ...prev, avatarUrl: "" }));
+    toast("Avatar Removed", {
+      description: "Avatar has been removed from your profile.",
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -231,7 +289,15 @@ export default function ProfilePage() {
     return (
       <DefaultLayout>
         <div className="flex items-center justify-center h-[70vh]">
-          <div className="text-gray-500 animate-pulse">Loading profile...</div>
+          <div className="text-center space-y-4">
+            <div className="p-4 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl animate-pulse">
+              <User className="h-12 w-12 text-purple-500" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-foreground mb-2">Loading Profile</h2>
+              <p className="text-default-600">Please wait while we fetch your profile details...</p>
+            </div>
+          </div>
         </div>
       </DefaultLayout>
     );
@@ -253,144 +319,291 @@ export default function ProfilePage() {
   return (
     <DefaultLayout>
       <section className="container flex flex-col items-center justify-center gap-8 py-8 md:py-10">
-        <h1 className={title()}>Profile</h1>
+        <div className="w-full max-w-4xl">
+          {/* Enhanced Header */}
+          <div className="text-center space-y-6 mb-10">
+            <div className="flex justify-center mb-6">
+              <div className="p-4 bg-gradient-to-br from-purple-500/20 to-pink-500/20 dark:from-purple-500/30 dark:to-pink-500/30 rounded-2xl">
+                <User className="h-12 w-12 text-purple-500" />
+              </div>
+            </div>
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent mb-4">
+                My Profile
+              </h1>
+              <p className="text-lg text-default-600 max-w-2xl mx-auto">
+                Manage your profile information and settings
+              </p>
+            </div>
+          </div>
 
-        <Card className="w-full max-w-2xl">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Your Information</CardTitle>
-            {!editing && (
-              <Button onClick={() => setEditing(true)}>Edit Profile</Button>
-            )}
-          </CardHeader>
-          <CardContent>
-            {error && (
-              <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md">
-                {error}
+          {/* Main Profile Card */}
+          <Card className="mb-8 bg-gradient-to-br from-background via-background to-gray-50/30 dark:to-gray-800/30 border-border/50">
+            <CardHeader className="flex flex-row items-center justify-between pb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-500/10 rounded-lg">
+                  <User className="h-5 w-5 text-purple-500" />
+                </div>
+                <CardTitle className="text-xl">Profile Information</CardTitle>
               </div>
-            )}
-            <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
-              <div className="flex flex-col items-center gap-2">
-                <Avatar className="h-24 w-24">
-                  {user.avatarUrl ? (
-                    <AvatarImage alt={user.name} src={user.avatarUrl} />
-                  ) : (
-                    <AvatarFallback className="text-2xl bg-primary/10 text-primary">
-                      {user.name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  )}
-                </Avatar>
-              </div>
-              {editing ? (
-                <form className="flex-1 space-y-4" onSubmit={handleSubmit}>
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Name</Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                    />
+              {!editing && (
+                <Button
+                  onClick={() => setEditing(true)}
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                >
+                  <Edit3 className="mr-2 h-4 w-4" />
+                  Edit Profile
+                </Button>
+              )}
+            </CardHeader>
+            <CardContent>
+              {error && (
+                <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <X className="h-4 w-4 text-red-500" />
+                    <span className="text-red-700 dark:text-red-400 font-medium">{error}</span>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      disabled
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                    />
+                </div>
+              )}
+
+              <div className="flex flex-col lg:flex-row gap-8 items-start">
+                {/* Avatar Section */}
+                <div className="flex flex-col items-center gap-4 lg:w-48">
+                  <div className="relative group">
+                    <Avatar className="h-32 w-32 ring-4 ring-purple-500/20 ring-offset-4 ring-offset-background">
+                      {formData.avatarUrl ? (
+                        <AvatarImage alt={formData.name} src={formData.avatarUrl} />
+                      ) : (
+                        <AvatarFallback className="text-3xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 text-purple-600 dark:text-purple-400">
+                          {formData.name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+
+                    {editing && (
+                      <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={uploadingAvatar}
+                          className="bg-white/90 hover:bg-white text-gray-900"
+                        >
+                          {uploadingAvatar ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900" />
+                          ) : (
+                            <Camera className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    )}
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="avatarUrl">Avatar URL</Label>
-                    <Input
-                      id="avatarUrl"
-                      name="avatarUrl"
-                      value={formData.avatarUrl || ""}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="bio">Bio</Label>
-                    <Textarea
-                      id="bio"
-                      name="bio"
-                      rows={4}
-                      value={formData.bio || ""}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="flex justify-end gap-2">
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarUpload}
+                    className="hidden"
+                  />
+
+                  {editing && formData.avatarUrl && (
                     <Button
-                      type="button"
+                      size="sm"
                       variant="outline"
-                      onClick={() => setEditing(false)}
+                      onClick={handleRemoveAvatar}
+                      className="text-red-600 border-red-500/20 hover:bg-red-50 dark:hover:bg-red-950/50"
                     >
-                      Cancel
+                      <X className="mr-2 h-4 w-4" />
+                      Remove Avatar
                     </Button>
-                    <Button disabled={updating} type="submit">
-                      {updating ? "Saving..." : "Save Changes"}
-                    </Button>
+                  )}
+
+                  <div className="text-center">
+                    <p className="text-sm text-default-600">
+                      Click the avatar to upload a new image
+                    </p>
+                    <p className="text-xs text-default-500 mt-1">
+                      Max 2MB • JPG, PNG, GIF
+                    </p>
                   </div>
-                </form>
-              ) : (
-                <div className="flex-1 space-y-4">
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground">
-                      Name
-                    </h3>
-                    <p>{user.name}</p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground">
-                      Email
-                    </h3>
-                    <p>{user.email}</p>
-                  </div>
-                  {user.bio && (
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">
-                        Bio
-                      </h3>
-                      <p>{user.bio}</p>
+                </div>
+
+                {/* Form Section */}
+                <div className="flex-1 space-y-6">
+                  {editing ? (
+                    <form className="space-y-6" onSubmit={handleSubmit}>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="name" className="font-medium flex items-center gap-2">
+                            <User className="h-4 w-4" />
+                            Full Name
+                          </Label>
+                          <Input
+                            id="name"
+                            name="name"
+                            placeholder="Enter your full name"
+                            value={formData.name}
+                            onChange={handleInputChange}
+                            className="border-purple-200 dark:border-purple-800 focus:border-purple-500 focus:ring-purple-500/20"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="email" className="font-medium flex items-center gap-2">
+                            <Mail className="h-4 w-4" />
+                            Email Address
+                          </Label>
+                          <Input
+                            id="email"
+                            name="email"
+                            type="email"
+                            disabled
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            className="border-purple-200 dark:border-purple-800 bg-gray-50 dark:bg-gray-800"
+                          />
+                          <p className="text-xs text-default-500">Email cannot be changed</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="bio" className="font-medium flex items-center gap-2">
+                          <FileText className="h-4 w-4" />
+                          Bio (Optional)
+                        </Label>
+                        <Textarea
+                          id="bio"
+                          name="bio"
+                          rows={4}
+                          placeholder="Tell us about yourself..."
+                          value={formData.bio || ""}
+                          onChange={handleInputChange}
+                          className="border-purple-200 dark:border-purple-800 focus:border-purple-500 focus:ring-purple-500/20 min-h-[100px]"
+                        />
+                      </div>
+
+                      <div className="flex justify-end gap-3 pt-4">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setEditing(false)}
+                          className="border-purple-500/20 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/50"
+                        >
+                          <X className="mr-2 h-4 w-4" />
+                          Cancel
+                        </Button>
+                        <Button
+                          disabled={updating}
+                          type="submit"
+                          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                        >
+                          {updating ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                              Saving...
+                            </>
+                          ) : (
+                            <>
+                              <Check className="mr-2 h-4 w-4" />
+                              Save Changes
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-default-600">Full Name</Label>
+                          <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            <User className="h-4 w-4 text-default-500" />
+                            <span className="font-medium">{user.name}</span>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-default-600">Email Address</Label>
+                          <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            <Mail className="h-4 w-4 text-default-500" />
+                            <span>{user.email}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {user.bio && (
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-default-600">Bio</Label>
+                          <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            <p className="text-sm">{user.bio}</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {user.id && (
-          <Card className="w-full max-w-2xl">
-            <CardHeader>
-              <CardTitle>Change Password</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ChangePasswordForm userId={user.id} />
+              </div>
             </CardContent>
           </Card>
-        )}
-        <div className="w-full max-w-2xl">
-          <h2 className="text-3xl mb-4 font-semibold">My Projects</h2>
-          <div>
-            {isProjectsLoading ? (
-              <p className="text-center text-gray-500">Loading projects...</p>
-            ) : userProjects && userProjects.length > 0 ? (
-              <div className="flex flex-col gap-6">
-                <div className="grid grid-cols-2 xl:grid-cols-2 gap-6">
+
+          {/* Password Change Card */}
+          {user.id && (
+            <Card className="mb-8 bg-gradient-to-br from-background via-background to-gray-50/30 dark:to-gray-800/30 border-border/50">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-orange-500/10 rounded-lg">
+                    <Icon icon="mdi:lock-outline" className="h-5 w-5 text-orange-500" />
+                  </div>
+                  <CardTitle className="text-xl">Security Settings</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="max-w-md">
+                  <ChangePasswordForm userId={user.id} />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Projects Section */}
+          <Card className="bg-gradient-to-br from-background via-background to-gray-50/30 dark:to-gray-800/30 border-border/50">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-500/10 rounded-lg">
+                  <Icon icon="mdi:folder-multiple-outline" className="h-5 w-5 text-blue-500" />
+                </div>
+                <CardTitle className="text-xl">My Projects</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isProjectsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-center space-y-2">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto" />
+                    <p className="text-default-600">Loading your projects...</p>
+                  </div>
+                </div>
+              ) : userProjects && userProjects.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {userProjects.map((project) => (
                     <ProjectCard key={project.id} project={project} />
                   ))}
                 </div>
-              </div>
-            ) : (
-              <p className="text-center text-gray-700 dark:text-gray-400">
-                No projects found.
-              </p>
-            )}
-          </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-full w-fit mx-auto mb-4">
+                    <Icon icon="mdi:folder-outline" className="h-8 w-8 text-blue-500" />
+                  </div>
+                  <h3 className="text-lg font-medium mb-2">No Projects Yet</h3>
+                  <p className="text-default-600 mb-4">You haven't created any projects yet.</p>
+                  <Button asChild className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600">
+                    <a href="/create">Create Your First Project</a>
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </section>
     </DefaultLayout>

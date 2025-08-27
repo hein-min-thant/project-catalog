@@ -52,7 +52,7 @@ export const useNotificationContext = () => {
       setIsLoading(true);
       setError(null);
       const response = await api.get("/api/notifications");
-      const fetchedNotifications = response.data;
+      const fetchedNotifications: Notification[] = response.data;
 
       setNotifications(fetchedNotifications);
       setUnreadCount(
@@ -131,15 +131,15 @@ export const useNotificationContext = () => {
           console.log("WebSocket connected");
           setIsConnected(true);
 
-          // Get current user ID from JWT token
-          const token = localStorage.getItem("jwt");
-
-          if (token) {
+          // Get current user info including ID from /users/me endpoint
+          const subscribeToNotifications = async () => {
             try {
-              const payload = JSON.parse(atob(token.split(".")[1]));
-              const userId = payload.sub || payload.userId;
-
+              console.log("Fetching user info for WebSocket subscription...");
+              const response = await api.get("/users/me");
+              const userId = response.data.id;
+              
               if (userId) {
+                console.log("Subscribing to notifications for user ID:", userId);
                 // Send subscription message to the server
                 socket.send(
                   JSON.stringify({
@@ -147,11 +147,24 @@ export const useNotificationContext = () => {
                     destination: `/topic/notifications/${userId}`,
                   })
                 );
+              } else {
+                console.error("No user ID found in response:", response.data);
               }
-            } catch (err) {
-              console.error("Failed to decode JWT token:", err);
+            } catch (err : any) {
+              console.error("Failed to get user info for WebSocket subscription:", err);
+              console.error("Response details:", err.response?.data);
+              console.error("Status:", err.response?.status);
+              
+              // Retry after a delay
+              setTimeout(() => {
+                console.log("Retrying WebSocket subscription...");
+                subscribeToNotifications();
+              }, 3000);
             }
-          }
+          };
+
+          // Call the subscription function
+          subscribeToNotifications();
         };
 
         socket.onmessage = (event) => {
@@ -204,7 +217,6 @@ export const useNotificationContext = () => {
     };
   }, []);
 
-  // Initial fetch
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
