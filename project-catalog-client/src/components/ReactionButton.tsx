@@ -58,7 +58,12 @@ export const ReactionButton = ({ projectId, userId }: ReactionButtonProps) => {
 
   if (isLoading) {
     return (
-      <Button disabled className="gap-1 text-sm p-0 h-auto bg-transparent border-none" size="default" variant="ghost">
+      <Button
+        disabled
+        className="gap-1 text-sm p-0 h-auto bg-transparent border-none"
+        size="default"
+        variant="ghost"
+      >
         <Icon
           className="text-lg text-gray-400 dark:text-gray-600"
           icon="mdi:heart-outline"
@@ -76,11 +81,11 @@ export const ReactionButton = ({ projectId, userId }: ReactionButtonProps) => {
 
   // src/components/ReactionButton.tsx  (only the return block changes)
 
-return (
-  <div className="flex items-center gap-2">
-    <Button
-      className={`
-        hover:bg-transparent
+  return (
+    <div className="flex items-center gap-2">
+      <Button
+        className={`
+        hover:bg-rose-300
         shadow-lg
         group
         relative
@@ -88,44 +93,43 @@ return (
         bg-transprent border border-rose-500
         ${isReacted ? "bg-rose-500" : ""}
       `}
-      size="lg"
-      disabled={toggleReactionMutation.isPending}
-      onClick={handleToggleReaction}
-      aria-label={isReacted ? "Unlike" : "Like"}
-    >
-      {/* subtle ripple on click */}
-      <span
-        className={`
+        size="lg"
+        disabled={toggleReactionMutation.isPending}
+        onClick={handleToggleReaction}
+        aria-label={isReacted ? "Unlike" : "Like"}
+      >
+        {/* subtle ripple on click */}
+        <span
+          className={`
           absolute inset-0 rounded-full
           bg-rose-400/20
           scale-0 group-active:scale-100
           transition-transform duration-300
         `}
-      />
+        />
 
-      {/* oversized heart */}
-      <Icon
-        className={`
+        {/* oversized heart */}
+        <Icon
+          className={`
           z-10
-          text-4xl
-          transition-all duration-200 ease-in-out
+          text-2xl
+          transition-all duration-200 ease-in-out mr-4
           ${isReacted ? "text-white" : "text-rose-500"}
         `}
-        icon={isReacted ? "mdi:heart" : "mdi:heart-outline"}
-      />
-       {totalReactions > 0 && (
-      <span
-        className={`
+          icon={isReacted ? "mdi:heart" : "mdi:heart-outline"}
+        />
+        {totalReactions > 0 && (
+          <span
+            className={`
           text-sm font-bold ${isReacted ? "text-white" : "text-rose-500"}
         `}
-      >
-        {totalReactions}
-      </span>
-    )}
-    </Button>
+          >
+            {totalReactions}
+          </span>
+        )}
+      </Button>
 
-    {/* counter badge */}
-   
-  </div>
-);
+      {/* counter badge */}
+    </div>
+  );
 };

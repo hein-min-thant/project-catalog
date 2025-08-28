@@ -5,7 +5,7 @@ import { title, subtitle } from "@/components/primitives";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Logo, SearchIcon } from "@/components/icons";
+import { Logo } from "@/components/icons";
 import DefaultLayout from "@/layouts/default";
 
 export default function IndexPage() {
@@ -119,7 +119,7 @@ export default function IndexPage() {
           <Card className="text-center p-6 bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-950/50 dark:to-blue-950/50 border-cyan-200/50 dark:border-cyan-800/50 hover:shadow-lg transition-all duration-300">
             <CardContent>
               <h3 className="text-3xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent">
-                1000+
+                20+
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
                 Projects Cataloged
@@ -139,7 +139,7 @@ export default function IndexPage() {
           <Card className="text-center p-6 bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/50 dark:to-green-950/50 border-emerald-200/50 dark:border-emerald-800/50 hover:shadow-lg transition-all duration-300">
             <CardContent>
               <h3 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 dark:from-emerald-400 dark:to-green-400 bg-clip-text text-transparent">
-                24/7
+                Professional
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
                 Supervisor Support
@@ -316,62 +316,6 @@ export default function IndexPage() {
               <div className="absolute -bottom-6 -left-6 w-12 h-12 bg-gradient-to-br from-violet-400 to-purple-400 rounded-full opacity-50 animate-bounce" />
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16 px-4 bg-gradient-to-r from-cyan-600 via-blue-600 to-violet-600 text-white relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIxLjUiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-20" />
-
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent">
-            Ready to Transform Your Project Management?
-          </h2>
-          <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
-            Join thousands of students and supervisors who trust Project Catalog
-            for their academic success.
-          </p>
-
-          <div className="flex gap-4 flex-col sm:flex-row justify-center">
-            <Button
-              className="bg-white text-cyan-600 hover:bg-gray-100 px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
-              size="lg"
-              variant="secondary"
-              onClick={() => navigate("/register")}
-            >
-              Start Your Journey
-            </Button>
-            <Button
-              className="border-2 border-white text-white hover:bg-white hover:text-cyan-600 px-8 py-3 transition-all duration-300 font-semibold"
-              size="lg"
-              variant="ghost"
-              onClick={() => navigate("/login")}
-            >
-              Sign In
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer CTA */}
-      <section className="py-12 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <h3 className="text-2xl font-semibold mb-4 bg-gradient-to-r from-cyan-600 to-blue-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent">
-            Discover Amazing Projects Today
-          </h3>
-          <p className="text-default-600 mb-6">
-            Explore our extensive collection of academic projects and get
-            inspired by innovative ideas.
-          </p>
-          <Button
-            className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-            color="primary"
-            onClick={() => navigate("/projects")}
-          >
-            <SearchIcon className="mr-2" />
-            Browse Projects
-          </Button>
         </div>
       </section>
     </DefaultLayout>

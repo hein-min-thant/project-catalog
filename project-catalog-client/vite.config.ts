@@ -6,4 +6,7 @@ import tailwindcss from "@tailwindcss/vite";
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react(), tsconfigPaths(), tailwindcss()],
+  define: {
+    global: "globalThis", // <-- polyfill for sockjs-client
+  },
 });

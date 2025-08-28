@@ -83,7 +83,7 @@ public class ProjectService {
 
             Project savedProject = projectRepository.save(project);
 
-            eventPublisher.publishEvent(new ProjectSubmitEvent(this,project.getId(),project.getApprovedBy().getId(),user.getName(),project.getTitle(),project.getApprovedBy().getName()));
+            eventPublisher.publishEvent(new ProjectSubmitEvent(this,project.getId(), dto.getSupervisorId(), user.getName(),project.getTitle(),project.getSupervisor().getName()));
             return projectMapper.toDTO(savedProject);
 
         } catch (Exception e) {

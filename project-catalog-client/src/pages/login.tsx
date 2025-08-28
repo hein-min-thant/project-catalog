@@ -7,9 +7,12 @@ import OTPForm from "@/components/OTPForm";
 export default function LoginPage() {
   const [step, setStep] = useState<"credentials" | "otp">("credentials");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [, setPassword] = useState("");
 
-  const handleCredentialsSubmit = (submittedEmail: string, submittedPassword: string) => {
+  const handleCredentialsSubmit = (
+    submittedEmail: string,
+    submittedPassword: string
+  ) => {
     setEmail(submittedEmail);
     setPassword(submittedPassword);
     setStep("otp");

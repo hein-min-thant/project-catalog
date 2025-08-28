@@ -65,7 +65,12 @@ export interface Notification {
   commentId?: number;
   isRead: boolean;
   createdAt: string;
-  notificationType: "COMMENT" | "APPROVAL" | "REJECTION" | "REACTION" | "SUBMIT";
+  notificationType:
+    | "COMMENT"
+    | "APPROVAL"
+    | "REJECTION"
+    | "REACTION"
+    | "SUBMIT";
   projectTitle?: string;
   commentText?: string;
   commenterName?: string;

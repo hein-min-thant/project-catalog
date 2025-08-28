@@ -15,7 +15,14 @@ import clsx from "clsx";
 import { button as buttonStyles } from "@heroui/theme";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { LogOut, SaveIcon, UserCircle, Bell, Plus, UserPlus } from "lucide-react";
+import {
+  LogOut,
+  SaveIcon,
+  UserCircle,
+  Bell,
+  Plus,
+  UserPlus,
+} from "lucide-react";
 
 import { siteConfig } from "@/config/site";
 import { ThemeSwitch } from "@/components/theme-switch";
@@ -48,6 +55,7 @@ export const Navbar = () => {
       if (isAuthenticated()) {
         try {
           const { data } = await api.get("/users/me");
+
           setUser(data);
         } catch (error) {
           // If token is invalid, user will be redirected to login
@@ -96,9 +104,7 @@ export const Navbar = () => {
         <NavbarBrand className="gap-3 max-w-fit">
           <Link className="flex items-center gap-1" color="foreground" href="/">
             <Logo />
-            <p className="text-inherit font-extrabold text-xl text-cyan-500">
-              CATALOG
-            </p>
+            <p className="font-extrabold text-xl text-cyan-500">CATALOG</p>
           </Link>
         </NavbarBrand>
 
@@ -146,7 +152,8 @@ export const Navbar = () => {
                   radius: "md",
                   size: "md",
                   color: "primary",
-                  className: "bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-600 hover:to-blue-600 transition-all duration-300 shadow-lg hover:shadow-xl",
+                  className:
+                    "bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-600 hover:to-blue-600 transition-all duration-300 shadow-lg hover:shadow-xl",
                 })}
                 href="/create"
               >
@@ -162,6 +169,7 @@ export const Navbar = () => {
                   <Avatar className="h-9 w-9 ring-2 ring-cyan-500 ring-offset-2 ring-offset-background hover:ring-cyan-400 transition-all cursor-pointer">
                     {user?.avatarUrl ? (
                       <AvatarImage
+                        className="object-cover"
                         alt={user.name || "User"}
                         src={user.avatarUrl}
                       />
@@ -172,7 +180,10 @@ export const Navbar = () => {
                     )}
                   </Avatar>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-background border-border">
+                <DropdownMenuContent
+                  align="end"
+                  className="w-56 bg-background border-border"
+                >
                   <DropdownMenuLabel>
                     <div className="flex flex-col">
                       <span className="font-bold">{user?.name || "User"}</span>
@@ -192,7 +203,7 @@ export const Navbar = () => {
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       className="bg-background hover:bg-accent"
-                      onClick={() => navigate("/saved")}
+                      onClick={() => navigate("/saved-project")}
                     >
                       <SaveIcon className="mr-2 h-4 w-4" />
                       Saved Projects
@@ -207,8 +218,8 @@ export const Navbar = () => {
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={handleLogout}
                     className="bg-background hover:bg-destructive/10 text-destructive hover:text-destructive"
+                    onClick={handleLogout}
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     Log out
@@ -226,14 +237,12 @@ export const Navbar = () => {
                   radius: "md",
                   size: "md",
                   color: "primary",
-                  className: "bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-600 hover:to-blue-600 transition-all duration-300 shadow-lg hover:shadow-xl",
+                  className:
+                    "bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-600 hover:to-blue-600 transition-all duration-300 shadow-lg hover:shadow-xl",
                 })}
                 href="/create"
               >
-
-                  {isAuthenticated() &&
-                    <Plus className="mr-2 h-4 w-4" />
-                  }
+                {isAuthenticated() && <Plus className="mr-2 h-4 w-4" />}
                 {!isAuthenticated() ? "Login" : "Create Project"}
               </Link>
             </NavbarItem>
@@ -245,7 +254,8 @@ export const Navbar = () => {
                   radius: "md",
                   size: "md",
                   variant: "bordered",
-                  className: "border-cyan-500 text-cyan-600 hover:bg-cyan-50 dark:hover:bg-cyan-950/50 transition-all duration-300",
+                  className:
+                    "border-cyan-500 text-cyan-600 hover:bg-cyan-50 dark:hover:bg-cyan-950/50 transition-all duration-300",
                 })}
                 href="/register"
               >
@@ -271,7 +281,7 @@ export const Navbar = () => {
         <div className="mx-4 mb-4">{searchInput}</div>
 
         {/* Mobile navigation items */}
-        {siteConfig.navItems.map((item, index) => (
+        {siteConfig.navItems.map((item) => (
           <NavbarMenuItem key={item.href}>
             <Link
               className="block py-2 text-lg text-foreground/90 hover:text-cyan-500 transition"
@@ -289,7 +299,7 @@ export const Navbar = () => {
             <>
               <NavbarMenuItem>
                 <Link
-                  className="block py-2 text-lg text-foreground/90 hover:text-cyan-500 transition flex items-center"
+                  className="py-2 text-lg text-foreground/90 hover:text-cyan-500 transition flex items-center"
                   color="foreground"
                   href="/profile"
                 >
@@ -299,19 +309,17 @@ export const Navbar = () => {
               </NavbarMenuItem>
               <NavbarMenuItem>
                 <Link
-                  className="block py-2 text-lg text-foreground/90 hover:text-cyan-500 transition flex items-center"
+                  className="py-2 text-lg text-foreground/90 hover:text-cyan-500 transition flex items-center"
                   color="foreground"
                   href="/create"
                 >
-                   {isAuthenticated() &&
-                    <Plus className="mr-2 h-4 w-4" />
-                  }
-                {!isAuthenticated() ? "Login" : "Create Project"}
+                  {isAuthenticated() && <Plus className="mr-2 h-4 w-4" />}
+                  {!isAuthenticated() ? "Login" : "Create Project"}
                 </Link>
               </NavbarMenuItem>
               <NavbarMenuItem>
                 <button
-                  className="block w-full text-left py-2 text-lg text-red-500 hover:text-red-600 transition flex items-center"
+                  className="w-full text-left py-2 text-lg text-red-500 hover:text-red-600 transition flex items-center"
                   onClick={handleLogout}
                 >
                   <LogOut className="mr-3 h-5 w-5" />
@@ -323,7 +331,7 @@ export const Navbar = () => {
             <>
               <NavbarMenuItem>
                 <Link
-                  className="block py-2 text-lg text-foreground/90 hover:text-cyan-500 transition flex items-center"
+                  className="py-2 text-lg text-foreground/90 hover:text-cyan-500 transition flex items-center"
                   color="foreground"
                   href="/register"
                 >
@@ -333,7 +341,7 @@ export const Navbar = () => {
               </NavbarMenuItem>
               <NavbarMenuItem>
                 <Link
-                  className="block py-2 text-lg text-foreground/90 hover:text-cyan-500 transition flex items-center"
+                  className="py-2 text-lg text-foreground/90 hover:text-cyan-500 transition flex items-center"
                   color="foreground"
                   href="/create"
                 >

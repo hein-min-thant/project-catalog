@@ -242,9 +242,9 @@
 				<artifactId>flyway-maven-plugin</artifactId>
 				<version>11.7.2</version>
 				<configuration>
-					<url>jdbc:postgresql://ep-twilight-truth-a1n117t8-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require</url>
+					<url>ep-cold-rice-a1uirpy2-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require</url>
 					<user>neondb_owner</user>
-					<password>npg_lAFvunkQH60M</password>
+					<password>npg_YxkP5oAtfcb7</password>
 					<cleanDisabled>false</cleanDisabled>
 				</configuration>
 			</plugin>

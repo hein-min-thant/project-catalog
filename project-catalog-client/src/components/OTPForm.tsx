@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Loader2, Mail, ArrowLeft, CheckCircle } from "lucide-react";
+import { Loader2, ArrowLeft, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import api from "../config/api";
@@ -34,9 +34,10 @@ export default function OTPForm({ email, onBack }: OTPFormProps) {
       });
 
       const token = res.data.jwtToken;
+
       localStorage.setItem("jwt", token);
 
-      navigate("/about");
+      navigate("/projects");
     } catch (err: any) {
       throw new Error(err.response?.data || "Invalid code");
     } finally {
@@ -66,7 +67,7 @@ export default function OTPForm({ email, onBack }: OTPFormProps) {
             Verify Your Code
           </CardTitle>
           <CardDescription className="text-base">
-            We've sent a verification code to
+            We&apos;ve sent a verification code to
           </CardDescription>
           <p className="font-medium text-green-600">{email}</p>
         </div>
@@ -74,19 +75,24 @@ export default function OTPForm({ email, onBack }: OTPFormProps) {
       <CardContent>
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-2">
-            <Label htmlFor="otp" className="font-medium flex items-center gap-2">
+            <Label
+              className="font-medium flex items-center gap-2"
+              htmlFor="otp"
+            >
               <CheckCircle className="h-4 w-4" />
               Verification Code
             </Label>
             <Input
               required
+              className="border-green-200 dark:border-green-800 focus:border-green-500 focus:ring-green-500/20 h-11 text-center text-lg tracking-widest"
               id="otp"
+              maxLength={6}
               placeholder="Enter 6-digit code"
               type="text"
               value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              className="border-green-200 dark:border-green-800 focus:border-green-500 focus:ring-green-500/20 h-11 text-center text-lg tracking-widest"
-              maxLength={6}
+              onChange={(e) =>
+                setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+              }
             />
             <p className="text-xs text-default-500 text-center">
               Enter the 6-digit code sent to your email
@@ -114,9 +120,9 @@ export default function OTPForm({ email, onBack }: OTPFormProps) {
 
             {onBack && (
               <Button
+                className="w-full border-green-500/20 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/50"
                 type="button"
                 variant="outline"
-                className="w-full border-green-500/20 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/50"
                 onClick={onBack}
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />

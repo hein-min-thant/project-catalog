@@ -20,12 +20,12 @@ public class NotificationService {
     private final UserRepository userRepository;
     private final WebSocketHandler webSocketHandler;
 
+
     public void saveAndSendNotification(Notification notification) {
         Notification savedNotification = notificationRepository.save(notification);
 
-        // Send via WebSocket to the user
         webSocketHandler.sendNotificationToUser(
-                savedNotification.getRecipientUserId(),
+                notification.getRecipientUserId(),
                 savedNotification
         );
     }

@@ -1,5 +1,4 @@
-// NotificationsPage.tsx  (enhanced UI)
-// —————— logic untouched ——————
+/* eslint-disable jsx-a11y/label-has-associated-control */
 
 import { useState } from "react";
 import {
@@ -19,7 +18,7 @@ import { Icon } from "@iconify/react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader,} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -45,7 +44,13 @@ export default function NotificationsPage() {
   } = useNotifications();
 
   const [filter, setFilter] = useState<
-    "all" | "unread" | "comments" | "approvals" | "rejections" | "reactions" | "submits"
+    | "all"
+    | "unread"
+    | "comments"
+    | "approvals"
+    | "rejections"
+    | "reactions"
+    | "submits"
   >("all");
   const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
   const [searchTerm, setSearchTerm] = useState("");
@@ -59,6 +64,7 @@ export default function NotificationsPage() {
           notification.message.toLowerCase().includes(searchLower) ||
           notification.projectTitle?.toLowerCase().includes(searchLower) ||
           notification.commentText?.toLowerCase().includes(searchLower);
+
         if (!matchesSearch) return false;
       }
 
@@ -74,6 +80,7 @@ export default function NotificationsPage() {
         return notification.notificationType === "REACTION";
       if (filter === "submits")
         return notification.notificationType === "SUBMIT";
+
       return true;
     })
     .sort((a, b) => {
@@ -85,6 +92,7 @@ export default function NotificationsPage() {
 
   const getNotificationIcon = (type: string) => {
     const iconClass = "h-5 w-5";
+
     switch (type) {
       case "COMMENT":
         return <MessageSquare className={`${iconClass} text-blue-500`} />;
@@ -142,15 +150,20 @@ export default function NotificationsPage() {
           <Card className="max-w-2xl mx-auto bg-gradient-to-br from-red-50/50 to-red-100/50 dark:from-red-950/50 dark:to-red-900/50 border-red-200/50 dark:border-red-800/50">
             <CardContent className="p-8 text-center">
               <div className="w-16 h-16 mx-auto mb-6 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center">
-                <Icon icon="mdi:alert-circle" className="text-2xl text-red-500" />
+                <Icon
+                  className="text-2xl text-red-500"
+                  icon="mdi:alert-circle"
+                />
               </div>
               <h2 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2">
                 Error Loading Notifications
               </h2>
-              <p className="text-red-600/80 dark:text-red-300/80 mb-6">{error}</p>
-              <Button 
-                onClick={() => window.location.reload()}
+              <p className="text-red-600/80 dark:text-red-300/80 mb-6">
+                {error}
+              </p>
+              <Button
                 className="bg-red-600 hover:bg-red-700 text-white"
+                onClick={() => window.location.reload()}
               >
                 Try Again
               </Button>
@@ -166,13 +179,13 @@ export default function NotificationsPage() {
       <div className="container max-w-5xl mx-auto px-4 py-8 space-y-8">
         {/* Header Section */}
         <div className="text-center space-y-6">
-          
           <div>
             <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent mb-4">
               Notifications
             </h1>
             <p className="text-lg text-default-600 max-w-2xl mx-auto">
-              Stay updated with the latest activity on your projects and comments
+              Stay updated with the latest activity on your projects and
+              comments
             </p>
           </div>
         </div>
@@ -183,27 +196,28 @@ export default function NotificationsPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
               <div className="flex flex-wrap gap-3">
                 {unreadCount > 0 && (
-                  <Button 
-                    variant="outline" 
-                    onClick={markAllAsRead}
+                  <Button
                     className="border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/50"
+                    variant="outline"
+                    onClick={markAllAsRead}
                   >
                     <Check className="w-4 h-4 mr-2" /> Mark all as read
                   </Button>
                 )}
                 {notifications.length > 0 && (
                   <Button
+                    className="border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50"
                     variant="outline"
                     onClick={clearAllNotifications}
-                    className="border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50"
                   >
                     <Trash2 className="w-4 h-4 mr-2" /> Clear all
                   </Button>
                 )}
               </div>
-              
+
               <div className="text-sm text-default-600">
-                {filteredNotifications.length} of {notifications.length} notifications
+                {filteredNotifications.length} of {notifications.length}{" "}
+                notifications
               </div>
             </div>
           </CardContent>
@@ -228,10 +242,10 @@ export default function NotificationsPage() {
                   Search
                 </label>
                 <Input
+                  className="bg-background/80 border-cyan-200 dark:border-cyan-800 focus:border-cyan-500 focus:ring-cyan-500/20"
                   placeholder="Search notifications..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-background/80 border-cyan-200 dark:border-cyan-800 focus:border-cyan-500 focus:ring-cyan-500/20"
                 />
               </div>
 
@@ -281,9 +295,13 @@ export default function NotificationsPage() {
         {isLoading ? (
           <Card className="bg-card/60 backdrop-blur-sm border-border/50">
             <CardContent className="p-12 text-center">
-              <div className="w-16 h-16 border-4 border-cyan-200 dark:border-cyan-800 border-t-cyan-500 rounded-full animate-spin mx-auto mb-6"></div>
-              <h3 className="text-xl font-semibold text-foreground mb-2">Loading Notifications...</h3>
-              <p className="text-default-600">Please wait while we fetch your notifications</p>
+              <div className="w-16 h-16 border-4 border-cyan-200 dark:border-cyan-800 border-t-cyan-500 rounded-full animate-spin mx-auto mb-6" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">
+                Loading Notifications...
+              </h3>
+              <p className="text-default-600">
+                Please wait while we fetch your notifications
+              </p>
             </CardContent>
           </Card>
         ) : filteredNotifications.length === 0 ? (
@@ -293,22 +311,23 @@ export default function NotificationsPage() {
                 <Bell className="w-10 h-10 text-gray-400 dark:text-gray-500" />
               </div>
               <h3 className="text-2xl font-semibold text-foreground mb-2">
-                {searchTerm || filter !== "all" ? "No matching notifications" : "You're all caught up!"}
+                {searchTerm || filter !== "all"
+                  ? "No matching notifications"
+                  : "You're all caught up!"}
               </h3>
               <p className="text-default-600 mb-6 max-w-md mx-auto">
-                {searchTerm || filter !== "all" 
+                {searchTerm || filter !== "all"
                   ? `No notifications found for your current search criteria. Try adjusting your filters.`
-                  : "You have no notifications at the moment. We'll notify you when there's new activity on your projects."
-                }
+                  : "You have no notifications at the moment. We'll notify you when there's new activity on your projects."}
               </p>
               {(searchTerm || filter !== "all") && (
-                <Button 
+                <Button
+                  className="border-cyan-500 text-cyan-600 hover:bg-cyan-50 dark:hover:bg-cyan-950/50"
                   variant="outline"
                   onClick={() => {
                     setSearchTerm("");
                     setFilter("all");
                   }}
-                  className="border-cyan-500 text-cyan-600 hover:bg-cyan-50 dark:hover:bg-cyan-950/50"
                 >
                   Clear filters
                 </Button>
@@ -317,7 +336,7 @@ export default function NotificationsPage() {
           </Card>
         ) : (
           <div className="space-y-3">
-            {filteredNotifications.map((notification, index) => (
+            {filteredNotifications.map((notification) => (
               <Card
                 key={notification.id}
                 className={`group cursor-pointer border-l-4 ${getNotificationColor(notification.notificationType)} ${
@@ -344,9 +363,12 @@ export default function NotificationsPage() {
                           </Badge>
                         )}
                         <span className="text-xs text-default-600 ml-auto">
-                          {formatDistanceToNow(new Date(notification.createdAt), {
-                            addSuffix: true,
-                          })}
+                          {formatDistanceToNow(
+                            new Date(notification.createdAt),
+                            {
+                              addSuffix: true,
+                            }
+                          )}
                         </span>
                       </div>
 
@@ -356,14 +378,15 @@ export default function NotificationsPage() {
 
                       {notification.projectTitle && (
                         <p className="text-sm text-default-600 mb-2">
-                          <span className="font-medium">Project:</span> {notification.projectTitle}
+                          <span className="font-medium">Project:</span>{" "}
+                          {notification.projectTitle}
                         </p>
                       )}
 
                       {notification.commentText && (
                         <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 mb-2">
                           <p className="text-sm italic text-default-600">
-                            "{notification.commentText}"
+                            &quot;{notification.commentText}&quot;
                           </p>
                         </div>
                       )}
@@ -371,7 +394,8 @@ export default function NotificationsPage() {
                       {notification.rejectionReason && (
                         <div className="bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800/50 rounded-lg p-3">
                           <p className="text-sm text-red-600 dark:text-red-400">
-                            <span className="font-medium">Reason:</span> {notification.rejectionReason}
+                            <span className="font-medium">Reason:</span>{" "}
+                            {notification.rejectionReason}
                           </p>
                         </div>
                       )}
@@ -381,25 +405,25 @@ export default function NotificationsPage() {
                     <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       {!notification.isRead && (
                         <Button
+                          className="p-2 hover:bg-green-100 dark:hover:bg-green-950/50 hover:text-green-600"
                           size="sm"
                           variant="ghost"
                           onClick={(e) => {
                             e.stopPropagation();
                             markAsRead(notification.id);
                           }}
-                          className="p-2 hover:bg-green-100 dark:hover:bg-green-950/50 hover:text-green-600"
                         >
                           <Check className="w-4 h-4" />
                         </Button>
                       )}
                       <Button
+                        className="p-2 hover:bg-red-100 dark:hover:bg-red-950/50 hover:text-red-600"
                         size="sm"
                         variant="ghost"
                         onClick={(e) => {
                           e.stopPropagation();
                           deleteNotification(notification.id);
                         }}
-                        className="p-2 hover:bg-red-100 dark:hover:bg-red-950/50 hover:text-red-600"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

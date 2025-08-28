@@ -1,6 +1,6 @@
+/* eslint-disable jsx-a11y/label-has-associated-control */
 // RegisterForm.tsx
 import { Button, Checkbox, Link, addToast } from "@heroui/react";
-import { Icon } from "@iconify/react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -81,7 +81,9 @@ export default function RegisterForm({
         <input
           {...register("username")}
           className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-            errors.username ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+            errors.username
+              ? "border-red-500"
+              : "border-gray-300 dark:border-gray-600"
           } bg-background`}
           placeholder="Choose a username"
         />
@@ -98,11 +100,13 @@ export default function RegisterForm({
         </label>
         <input
           {...register("email")}
-          type="email"
           className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-            errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+            errors.email
+              ? "border-red-500"
+              : "border-gray-300 dark:border-gray-600"
           } bg-background`}
           placeholder="Enter your email address"
+          type="email"
         />
         {errors.email && (
           <p className="text-red-500 text-sm">{errors.email.message}</p>
@@ -118,18 +122,24 @@ export default function RegisterForm({
         <div className="relative">
           <input
             {...register("password")}
-            type={isVisible ? "text" : "password"}
             className={`w-full px-3 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-              errors.password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+              errors.password
+                ? "border-red-500"
+                : "border-gray-300 dark:border-gray-600"
             } bg-background`}
             placeholder="Create a strong password"
+            type={isVisible ? "text" : "password"}
           />
           <button
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
             type="button"
             onClick={() => setIsVisible(!isVisible)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
           >
-            {isVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            {isVisible ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
           </button>
         </div>
         {errors.password && (
@@ -146,22 +156,30 @@ export default function RegisterForm({
         <div className="relative">
           <input
             {...register("confirmPassword")}
-            type={isConfirmVisible ? "text" : "password"}
             className={`w-full px-3 py-2 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-              errors.confirmPassword ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+              errors.confirmPassword
+                ? "border-red-500"
+                : "border-gray-300 dark:border-gray-600"
             } bg-background`}
             placeholder="Confirm your password"
+            type={isConfirmVisible ? "text" : "password"}
           />
           <button
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
             type="button"
             onClick={() => setIsConfirmVisible(!isConfirmVisible)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
           >
-            {isConfirmVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            {isConfirmVisible ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
           </button>
         </div>
         {errors.confirmPassword && (
-          <p className="text-red-500 text-sm">{errors.confirmPassword.message}</p>
+          <p className="text-red-500 text-sm">
+            {errors.confirmPassword.message}
+          </p>
         )}
       </div>
 
@@ -169,7 +187,7 @@ export default function RegisterForm({
       <div className="space-y-2">
         <Checkbox
           {...register("terms")}
-          className={`py-4 ${errors.terms ? 'text-red-500' : ''}`}
+          className={`py-4 ${errors.terms ? "text-red-500" : ""}`}
           size="sm"
         >
           I agree with the&nbsp;
@@ -188,10 +206,10 @@ export default function RegisterForm({
 
       {/* Submit Button */}
       <Button
+        className="w-full"
         color="primary"
         isLoading={loading}
         type="submit"
-        className="w-full"
         onClick={handleSubmit(onRegisterSubmit)}
       >
         {loading ? "Creating Account..." : "Create Account"}

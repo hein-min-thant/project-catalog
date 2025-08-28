@@ -1,12 +1,16 @@
+import type { Notification } from "@/types";
+
 import {
   useEffect,
   useState,
   useCallback,
   useContext,
   createContext,
+  useRef,
 } from "react";
+import { Client, IMessage, StompSubscription } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
 
-import { Notification } from "@/types";
 import api from "@/config/api";
 import { isAuthenticated } from "@/config/auth";
 
@@ -20,6 +24,8 @@ interface NotificationContextType {
   isLoading: boolean;
   error: string | null;
   isConnected: boolean;
+  connectionStatus: "connected" | "disconnected" | "connecting" | "error";
+  reconnect: () => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | null>(null);
@@ -41,8 +47,19 @@ export const useNotificationContext = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [ws, setWs] = useState<WebSocket | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
+  const [stompClient, setStompClient] = useState<Client | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<
+    "connected" | "disconnected" | "connecting" | "error"
+  >("disconnected");
+  const [reconnectAttempts, setReconnectAttempts] = useState(0);
+
+  // Get WebSocket URL from
+  const subscriptionRef = useRef<StompSubscription | null>(null);
+  
+  const getWebSocketUrl = useCallback(() => {
+    const apiBaseUrl = api.defaults.baseURL || "http://localhost:8080";
+    return apiBaseUrl + "/ws";
+  }, []);
 
   // Fetch notifications from API
   const fetchNotifications = useCallback(async () => {
@@ -118,108 +135,203 @@ export const useNotificationContext = () => {
     }
   }, []);
 
-  // WebSocket connection
-  useEffect(() => {
-    if (!isAuthenticated()) return;
+  const connectStomp = useCallback(async () => {
+    if (!isAuthenticated()) {
+      console.log("User not authenticated");
+      return;
+    }
 
-    const connectWebSocket = () => {
-      try {
-        // Use native WebSocket instead of STOMP for simplicity
-        const socket = new WebSocket("ws://localhost:8080/ws");
+    // 👉 Step 1: Fetch userId FIRST, before creating STOMP client
+    let userId: number;
+    try {
+      const response = await api.get("/users/me");
+      userId = response.data.id;
+      console.log(`👤 User ID for STOMP: ${userId}`);
+    } catch (err) {
+      console.error("❌ Failed to fetch user ID:", err);
+      setConnectionStatus("error");
+      return;
+    }
 
-        socket.onopen = () => {
-          console.log("WebSocket connected");
-          setIsConnected(true);
+    // 👉 Step 2: Now create and configure STOMP client
+    try {
+      const socketUrl = getWebSocketUrl();
+      const client = new Client({
+        webSocketFactory: () => new SockJS(socketUrl),
+        debug: (str) => console.log("STOMP:", str),
+        reconnectDelay: 5000,
+        heartbeatIncoming: 4000,
+        heartbeatOutgoing: 4000,
+      });
 
-          // Get current user info including ID from /users/me endpoint
-          const subscribeToNotifications = async () => {
-            try {
-              console.log("Fetching user info for WebSocket subscription...");
-              const response = await api.get("/users/me");
-              const userId = response.data.id;
-              
-              if (userId) {
-                console.log("Subscribing to notifications for user ID:", userId);
-                // Send subscription message to the server
-                socket.send(
-                  JSON.stringify({
-                    type: "SUBSCRIBE",
-                    destination: `/topic/notifications/${userId}`,
-                  })
-                );
-              } else {
-                console.error("No user ID found in response:", response.data);
+      // Remove the local 'let subscription: StompSubscription | null = null;' line
+
+      client.onConnect = () => {
+        console.log("✅ STOMP connected successfully!");
+        setConnectionStatus("connected");
+        setReconnectAttempts(0);
+
+        // ✅ Use subscriptionRef.current to check and manage subscription
+        if (!subscriptionRef.current) { // <-- Check ref instead of local var
+          console.log(`📡 Subscribing to /topic/notifications/${userId}`);
+          const newSubscription = client.subscribe( // <-- Assign to a new const
+            `/topic/notifications/${userId}`,
+            (message: IMessage) => {
+              try {
+                const notification: Notification = JSON.parse(message.body);
+                console.log("🔔 New notification received:", notification);
+
+                setNotifications((prev) => {
+                  // Check for duplicates before adding (Safety net)
+                  if (prev.some((n) => n.id === notification.id)) {
+                     console.warn("Duplicate notification ID received, ignoring:", notification.id);
+                     return prev;
+                  }
+                  // Add new notification to the beginning of the list
+                  return [notification, ...prev];
+                });
+
+                if (!notification.isRead) {
+                  setUnreadCount((prev) => prev + 1);
+                }
+              } catch (err) {
+                console.error("❌ Failed to parse message:", err);
               }
-            } catch (err : any) {
-              console.error("Failed to get user info for WebSocket subscription:", err);
-              console.error("Response details:", err.response?.data);
-              console.error("Status:", err.response?.status);
-              
-              // Retry after a delay
-              setTimeout(() => {
-                console.log("Retrying WebSocket subscription...");
-                subscribeToNotifications();
-              }, 3000);
             }
-          };
+          );
+          // Store the new subscription in the ref
+          subscriptionRef.current = newSubscription; // <-- Store in ref
+        } else {
+           console.log("Already subscribed, skipping new subscription.");
+        }
 
-          // Call the subscription function
-          subscribeToNotifications();
-        };
+        // Fetch initial notifications only on first connect
+        if (reconnectAttempts === 0) {
+          fetchNotifications();
+        }
+      };
 
-        socket.onmessage = (event) => {
+      client.onStompError = (frame) => {
+        console.error("❌ STOMP error:", frame);
+        setConnectionStatus("error");
+      };
+
+      client.onWebSocketClose = () => {
+        console.log("🔌 STOMP connection closed");
+        setConnectionStatus("disconnected");
+        setReconnectAttempts((prev) => prev + 1);
+        // Clear the subscription ref on close
+        subscriptionRef.current = null; // <-- Clear ref on close
+      };
+
+      client.onWebSocketError = (error) => {
+        console.error("❌ WebSocket error:", error);
+        setConnectionStatus("error");
+      };
+
+      // 👉 Step 3: Activate client
+      client.activate();
+      setStompClient(client);
+
+      // Cleanup function returned by connectStomp
+      return () => {
+        console.log("🧹 Cleaning up STOMP connection (connectStomp cleanup)...");
+        // Unsubscribe using the ref
+        if (subscriptionRef.current) {
+          console.log("Unsubscribing via ref...");
           try {
-            const data = JSON.parse(event.data);
-
-            if (data.type === "NOTIFICATION") {
-              const notification = data.payload;
-
-              console.log("Received notification:", notification);
-
-              setNotifications((prev) => [notification, ...prev]);
-              if (!notification.isRead) {
-                setUnreadCount((prev) => prev + 1);
-              }
-            } else if (data.type === "SUBSCRIBED") {
-              console.log(
-                "Successfully subscribed to notifications:",
-                data.message
-              );
-            }
-          } catch (err) {
-            console.error("Failed to parse WebSocket message:", err);
+            subscriptionRef.current.unsubscribe();
+          } catch (e) {
+            console.warn("Error during unsubscribe in cleanup:", e);
           }
-        };
+          subscriptionRef.current = null; // <-- Clear ref in cleanup
+        }
+        // Deactivate client
+        if (client && client.active) {
+          console.log("Deactivating client...");
+          client.deactivate();
+        }
+      };
+    } catch (err) {
+      console.error("❌ STOMP setup failed:", err);
+      setConnectionStatus("error");
+    }
+  }, [getWebSocketUrl, reconnectAttempts, fetchNotifications]); // Ensure dependencies are correct
 
-        socket.onclose = () => {
-          console.log("WebSocket disconnected");
-          setIsConnected(false);
-          // Reconnect after a delay
-          setTimeout(connectWebSocket, 5000);
-        };
-
-        socket.onerror = (error) => {
-          console.error("WebSocket error:", error);
-        };
-
-        setWs(socket);
-      } catch (err) {
-        console.error("Failed to connect WebSocket:", err);
+  // Manual reconnect function
+  const reconnect = useCallback(() => {
+    console.log("🔄 Manual reconnection requested");
+    setReconnectAttempts(0);
+    // Explicitly unsubscribe and clear ref on manual reconnect
+    if (subscriptionRef.current) {
+      console.log("Unsubscribing via ref (reconnect)...");
+      try {
+         subscriptionRef.current.unsubscribe();
+      } catch (e) {
+         console.warn("Error during unsubscribe in reconnect:", e);
       }
-    };
-
-    connectWebSocket();
-
-    return () => {
-      if (ws) {
-        ws.close();
+      subscriptionRef.current = null; // <-- Clear ref on reconnect
+    }
+    // Deactivate existing client if present
+    if (stompClient) {
+      if(stompClient.connected){
+         console.log("Deactivating connected client (reconnect)...");
+         stompClient.deactivate();
+      } else {
+         // If not connected, just clear the state to trigger cleanup/useEffect
+         console.log("Client not connected, clearing state (reconnect)...");
+         setStompClient(null);
+         setConnectionStatus("disconnected");
       }
-    };
-  }, []);
+    }
+    // Delay the reconnection attempt slightly
+    setTimeout(() => connectStomp(), 1000);
+  }, [connectStomp, stompClient]);
 
+  // Initialize STOMP connection
+    // Initialize STOMP connection
+    useEffect(() => {
+      console.log("🚀 Initializing STOMP connection useEffect...");
+      let cleanupFn: (() => void) | undefined;
+      
+      connectStomp().then((cleanup) => {
+        cleanupFn = cleanup;
+      });
+  
+      // Return the cleanup function from connectStomp, or define one here if connectStomp doesn't return one immediately
+      return () => {
+        console.log("🛑 Cleaning up STOMP connection (main useEffect cleanup)...");
+        // The cleanup function returned by connectStomp (when it resolves/activates)
+        // or the one defined inside connectStomp will handle the actual cleanup.
+        // We can also add explicit cleanup here if needed, but the ref cleanup in connectStomp's return should suffice.
+        if (cleanupFn) {
+           console.log("Calling cleanup function returned by connectStomp...");
+           cleanupFn();
+        }
+        // Ensure ref is cleared in case cleanupFn wasn't called or failed
+        if(subscriptionRef.current){
+           console.warn("Subscription ref still active in main useEffect cleanup, forcing unsubscribe.");
+           try {
+              subscriptionRef.current.unsubscribe();
+           } catch(e){
+              console.warn("Error forcing unsubscribe in main useEffect cleanup:", e);
+           }
+           subscriptionRef.current = null; // <-- Ensure ref is cleared
+        }
+      };
+    }, [connectStomp]); // Make sure connectStomp is in the dependency array // Make sure connectStomp is in the dependency array
+
+  // Initial fetch of notifications
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
+
+  // Request notification permission on mount
+  useEffect(() => {
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, []);
 
   return {
     notifications,
@@ -230,7 +342,9 @@ export const useNotificationContext = () => {
     clearAllNotifications,
     isLoading,
     error,
-    isConnected,
+    isConnected: connectionStatus === "connected",
+    connectionStatus,
+    reconnect,
   };
 };
 

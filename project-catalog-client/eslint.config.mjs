@@ -51,8 +51,8 @@ export default defineConfig([
         "plugin:react/recommended",
         "plugin:prettier/recommended",
         "plugin:react-hooks/recommended",
-        "plugin:jsx-a11y/recommended",
-      ),
+        "plugin:jsx-a11y/recommended"
+      )
     ),
 
     plugins: {
@@ -67,7 +67,7 @@ export default defineConfig([
     languageOptions: {
       globals: {
         ...Object.fromEntries(
-          Object.entries(globals.browser).map(([key]) => [key, "off"]),
+          Object.entries(globals.browser).map(([key]) => [key, "off"])
         ),
         ...globals.node,
       },
@@ -89,7 +89,6 @@ export default defineConfig([
       },
     },
 
-
     files: ["**/*.ts", "**/*.tsx"],
 
     rules: {
@@ -104,7 +103,7 @@ export default defineConfig([
       "no-unused-vars": "off",
       "unused-imports/no-unused-vars": "off",
       "unused-imports/no-unused-imports": "warn",
-
+      "unsued-var": "warn",
       "@typescript-eslint/no-unused-vars": [
         "warn",
         {

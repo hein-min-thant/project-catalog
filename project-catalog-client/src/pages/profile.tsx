@@ -5,7 +5,7 @@ import { useEffect, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Icon } from "@iconify/react";
-import { Camera, Upload, X, Check, Edit3, User, Mail, FileText } from "lucide-react";
+import { Camera, X, Check, Edit3, User, Mail, FileText } from "lucide-react";
 
 import { Project } from "./projects";
 
@@ -15,7 +15,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { title } from "@/components/primitives";
 import DefaultLayout from "@/layouts/default";
 import api from "@/config/api";
@@ -27,14 +26,6 @@ interface UserProfile {
   email: string;
   avatarUrl?: string;
   bio?: string;
-}
-
-interface ProjectResponseDTO {
-  id: number;
-  title: string;
-  description: string;
-  excerpt: string;
-  coverImageUrl?: string;
 }
 
 // --- Change Password Form Component ---
@@ -173,7 +164,7 @@ export default function ProfilePage() {
     if (!file) return;
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
+    if (!file.type.startsWith("image/")) {
       toast("Error", {
         description: "Please select an image file.",
       });
@@ -191,16 +182,16 @@ export default function ProfilePage() {
     setUploadingAvatar(true);
     try {
       const formDataUpload = new FormData();
-      formDataUpload.append('image', file);
+      formDataUpload.append("image", file);
 
-      const response = await api.post('/users/upload-avatar', formDataUpload, {
+      const response = await api.post("/users/upload-avatar", formDataUpload, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
       });
 
       const imageUrl = response.data.url;
-      setFormData(prev => ({ ...prev, avatarUrl: imageUrl }));
+      setFormData((prev) => ({ ...prev, avatarUrl: imageUrl }));
       toast("Success", {
         description: "Avatar uploaded successfully!",
       });
@@ -214,7 +205,7 @@ export default function ProfilePage() {
   };
 
   const handleRemoveAvatar = () => {
-    setFormData(prev => ({ ...prev, avatarUrl: "" }));
+    setFormData((prev) => ({ ...prev, avatarUrl: "" }));
     toast("Avatar Removed", {
       description: "Avatar has been removed from your profile.",
     });
@@ -294,8 +285,12 @@ export default function ProfilePage() {
               <User className="h-12 w-12 text-purple-500" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-foreground mb-2">Loading Profile</h2>
-              <p className="text-default-600">Please wait while we fetch your profile details...</p>
+              <h2 className="text-xl font-semibold text-foreground mb-2">
+                Loading Profile
+              </h2>
+              <p className="text-default-600">
+                Please wait while we fetch your profile details...
+              </p>
             </div>
           </div>
         </div>
@@ -322,13 +317,9 @@ export default function ProfilePage() {
         <div className="w-full max-w-4xl">
           {/* Enhanced Header */}
           <div className="text-center space-y-6 mb-10">
-            <div className="flex justify-center mb-6">
-              <div className="p-4 bg-gradient-to-br from-purple-500/20 to-pink-500/20 dark:from-purple-500/30 dark:to-pink-500/30 rounded-2xl">
-                <User className="h-12 w-12 text-purple-500" />
-              </div>
-            </div>
+            <div className="flex justify-center mb-6"></div>
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent mb-4">
+              <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent mb-4">
                 My Profile
               </h1>
               <p className="text-lg text-default-600 max-w-2xl mx-auto">
@@ -349,7 +340,7 @@ export default function ProfilePage() {
               {!editing && (
                 <Button
                   onClick={() => setEditing(true)}
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                  className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-600 hover:to-blue-600"
                 >
                   <Edit3 className="mr-2 h-4 w-4" />
                   Edit Profile
@@ -361,7 +352,9 @@ export default function ProfilePage() {
                 <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
                   <div className="flex items-center gap-2">
                     <X className="h-4 w-4 text-red-500" />
-                    <span className="text-red-700 dark:text-red-400 font-medium">{error}</span>
+                    <span className="text-red-700 dark:text-red-400 font-medium">
+                      {error}
+                    </span>
                   </div>
                 </div>
               )}
@@ -372,7 +365,11 @@ export default function ProfilePage() {
                   <div className="relative group">
                     <Avatar className="h-32 w-32 ring-4 ring-purple-500/20 ring-offset-4 ring-offset-background">
                       {formData.avatarUrl ? (
-                        <AvatarImage alt={formData.name} src={formData.avatarUrl} />
+                        <AvatarImage
+                          className="object-cover"
+                          alt={formData.name}
+                          src={formData.avatarUrl}
+                        />
                       ) : (
                         <AvatarFallback className="text-3xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 text-purple-600 dark:text-purple-400">
                           {formData.name.charAt(0).toUpperCase()}
@@ -435,7 +432,10 @@ export default function ProfilePage() {
                     <form className="space-y-6" onSubmit={handleSubmit}>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                          <Label htmlFor="name" className="font-medium flex items-center gap-2">
+                          <Label
+                            htmlFor="name"
+                            className="font-medium flex items-center gap-2"
+                          >
                             <User className="h-4 w-4" />
                             Full Name
                           </Label>
@@ -450,7 +450,10 @@ export default function ProfilePage() {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="email" className="font-medium flex items-center gap-2">
+                          <Label
+                            htmlFor="email"
+                            className="font-medium flex items-center gap-2"
+                          >
                             <Mail className="h-4 w-4" />
                             Email Address
                           </Label>
@@ -463,12 +466,17 @@ export default function ProfilePage() {
                             onChange={handleInputChange}
                             className="border-purple-200 dark:border-purple-800 bg-gray-50 dark:bg-gray-800"
                           />
-                          <p className="text-xs text-default-500">Email cannot be changed</p>
+                          <p className="text-xs text-default-500">
+                            Email cannot be changed
+                          </p>
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="bio" className="font-medium flex items-center gap-2">
+                        <Label
+                          htmlFor="bio"
+                          className="font-medium flex items-center gap-2"
+                        >
                           <FileText className="h-4 w-4" />
                           Bio (Optional)
                         </Label>
@@ -516,7 +524,9 @@ export default function ProfilePage() {
                     <div className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                          <Label className="text-sm font-medium text-default-600">Full Name</Label>
+                          <Label className="text-sm font-medium text-default-600">
+                            Full Name
+                          </Label>
                           <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                             <User className="h-4 w-4 text-default-500" />
                             <span className="font-medium">{user.name}</span>
@@ -524,7 +534,9 @@ export default function ProfilePage() {
                         </div>
 
                         <div className="space-y-2">
-                          <Label className="text-sm font-medium text-default-600">Email Address</Label>
+                          <Label className="text-sm font-medium text-default-600">
+                            Email Address
+                          </Label>
                           <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                             <Mail className="h-4 w-4 text-default-500" />
                             <span>{user.email}</span>
@@ -534,7 +546,9 @@ export default function ProfilePage() {
 
                       {user.bio && (
                         <div className="space-y-2">
-                          <Label className="text-sm font-medium text-default-600">Bio</Label>
+                          <Label className="text-sm font-medium text-default-600">
+                            Bio
+                          </Label>
                           <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                             <p className="text-sm">{user.bio}</p>
                           </div>
@@ -553,7 +567,10 @@ export default function ProfilePage() {
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-orange-500/10 rounded-lg">
-                    <Icon icon="mdi:lock-outline" className="h-5 w-5 text-orange-500" />
+                    <Icon
+                      icon="mdi:lock-outline"
+                      className="h-5 w-5 text-orange-500"
+                    />
                   </div>
                   <CardTitle className="text-xl">Security Settings</CardTitle>
                 </div>
@@ -571,7 +588,10 @@ export default function ProfilePage() {
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-500/10 rounded-lg">
-                  <Icon icon="mdi:folder-multiple-outline" className="h-5 w-5 text-blue-500" />
+                  <Icon
+                    icon="mdi:folder-multiple-outline"
+                    className="h-5 w-5 text-blue-500"
+                  />
                 </div>
                 <CardTitle className="text-xl">My Projects</CardTitle>
               </div>
@@ -593,11 +613,19 @@ export default function ProfilePage() {
               ) : (
                 <div className="text-center py-8">
                   <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-full w-fit mx-auto mb-4">
-                    <Icon icon="mdi:folder-outline" className="h-8 w-8 text-blue-500" />
+                    <Icon
+                      icon="mdi:folder-outline"
+                      className="h-8 w-8 text-blue-500"
+                    />
                   </div>
                   <h3 className="text-lg font-medium mb-2">No Projects Yet</h3>
-                  <p className="text-default-600 mb-4">You haven't created any projects yet.</p>
-                  <Button asChild className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600">
+                  <p className="text-default-600 mb-4">
+                    You haven't created any projects yet.
+                  </p>
+                  <Button
+                    asChild
+                    className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
+                  >
                     <a href="/create">Create Your First Project</a>
                   </Button>
                 </div>

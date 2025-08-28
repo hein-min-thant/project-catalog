@@ -1,8 +1,10 @@
 spring:
+  config :
+    import: optional:file:.env[.properties]
   datasource:
-    url: jdbc:postgresql://ep-twilight-truth-a1n117t8-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
+    url: jdbc:postgresql://ep-cold-rice-a1uirpy2-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
     username: neondb_owner
-    password: npg_lAFvunkQH60M
+    password: npg_YxkP5oAtfcb7
   jpa:
     show-sql: true
 
@@ -22,8 +24,7 @@ dropbox:
 openrouter:
   api:
     url: https://openrouter.ai/api/v1/chat/completions
-    key: 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
-
+    key: ${OPEN_ROUTER_API}
 # Commenting out proxy configuration that might interfere with external API calls
 # http:
 #   proxyHost: localhost

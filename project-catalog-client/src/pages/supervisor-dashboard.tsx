@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Spinner } from "@heroui/react";
 import { Icon } from "@iconify/react";
@@ -124,9 +124,12 @@ export default function SupervisorDashboardPage() {
                     icon="mdi:alert-circle"
                   />
                 </div>
-                <h2 className="text-2xl font-bold mb-2 text-red-600 dark:text-red-400">Access Denied</h2>
+                <h2 className="text-2xl font-bold mb-2 text-red-600 dark:text-red-400">
+                  Access Denied
+                </h2>
                 <p className="text-red-600/80 dark:text-red-300/80">
-                  You don&apos;t have permission to access the supervisor dashboard.
+                  You don&apos;t have permission to access the supervisor
+                  dashboard.
                 </p>
               </div>
             </CardContent>
@@ -141,17 +144,14 @@ export default function SupervisorDashboardPage() {
       <div className="container mx-auto px-4 py-8 space-y-8">
         {/* Enhanced Header Section */}
         <div className="text-center space-y-6">
-          <div className="flex justify-center mb-6">
-            <div className="p-4 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 dark:from-cyan-500/30 dark:to-blue-500/30 rounded-2xl">
-              <Icon className="h-12 w-12 text-cyan-500" icon="mdi:account-tie" />
-            </div>
-          </div>
+          <div className="flex justify-center mb-6"></div>
           <div>
             <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent mb-4">
               Supervisor Dashboard
             </h1>
             <p className="text-lg text-default-600 max-w-2xl mx-auto">
-              Review and approve pending student projects with AI-powered insights
+              Review and approve pending student projects with AI-powered
+              insights
             </p>
           </div>
 
@@ -162,7 +162,9 @@ export default function SupervisorDashboardPage() {
                 <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-400 mb-2">
                   {pendingProjects?.length || 0}
                 </div>
-                <div className="text-sm text-default-600 font-medium">Pending Reviews</div>
+                <div className="text-sm text-default-600 font-medium">
+                  Pending Reviews
+                </div>
               </CardContent>
             </Card>
             <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 border-green-200/50 dark:border-green-800/50">
@@ -170,7 +172,9 @@ export default function SupervisorDashboardPage() {
                 <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
                   {approveMutation.isSuccess ? "✓" : "—"}
                 </div>
-                <div className="text-sm text-default-600 font-medium">Recently Approved</div>
+                <div className="text-sm text-default-600 font-medium">
+                  Recently Approved
+                </div>
               </CardContent>
             </Card>
             <Card className="bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/50 dark:to-rose-950/50 border-red-200/50 dark:border-red-800/50">
@@ -178,7 +182,9 @@ export default function SupervisorDashboardPage() {
                 <div className="text-3xl font-bold text-red-600 dark:text-red-400 mb-2">
                   {rejectMutation.isSuccess ? "✗" : "—"}
                 </div>
-                <div className="text-sm text-default-600 font-medium">Recently Rejected</div>
+                <div className="text-sm text-default-600 font-medium">
+                  Recently Rejected
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -189,8 +195,12 @@ export default function SupervisorDashboardPage() {
           <Card className="bg-card/60 backdrop-blur-sm border-border/50">
             <CardContent className="p-12 text-center">
               <div className="w-16 h-16 border-4 border-cyan-200 dark:border-cyan-800 border-t-cyan-500 rounded-full animate-spin mx-auto mb-6"></div>
-              <h3 className="text-xl font-semibold text-foreground mb-2">Loading Projects...</h3>
-              <p className="text-default-600">Fetching pending projects for review</p>
+              <h3 className="text-xl font-semibold text-foreground mb-2">
+                Loading Projects...
+              </h3>
+              <p className="text-default-600">
+                Fetching pending projects for review
+              </p>
             </CardContent>
           </Card>
         ) : isError ? (
@@ -202,11 +212,13 @@ export default function SupervisorDashboardPage() {
                   icon="mdi:alert-circle"
                 />
               </div>
-              <h3 className="text-2xl font-semibold text-red-600 dark:text-red-400 mb-2">Error Loading Projects</h3>
+              <h3 className="text-2xl font-semibold text-red-600 dark:text-red-400 mb-2">
+                Error Loading Projects
+              </h3>
               <p className="text-red-600/80 dark:text-red-300/80 mb-6">
                 Failed to load pending projects. Please try again.
               </p>
-              <Button 
+              <Button
                 onClick={() => window.location.reload()}
                 className="bg-red-600 hover:bg-red-700 text-white"
               >
@@ -223,7 +235,9 @@ export default function SupervisorDashboardPage() {
                   icon="mdi:check-circle"
                 />
               </div>
-              <h3 className="text-2xl font-semibold text-green-600 dark:text-green-400 mb-2">All Caught Up!</h3>
+              <h3 className="text-2xl font-semibold text-green-600 dark:text-green-400 mb-2">
+                All Caught Up!
+              </h3>
               <p className="text-green-600/80 dark:text-green-300/80">
                 No pending projects to review at this time.
               </p>
@@ -234,7 +248,12 @@ export default function SupervisorDashboardPage() {
             {/* Results Summary */}
             <div className="text-center">
               <p className="text-default-600">
-                Showing <span className="font-semibold text-cyan-600">{pendingProjects?.length}</span> pending project{(pendingProjects?.length || 0) !== 1 ? 's' : ''} for review
+                Showing{" "}
+                <span className="font-semibold text-cyan-600">
+                  {pendingProjects?.length}
+                </span>{" "}
+                pending project{(pendingProjects?.length || 0) !== 1 ? "s" : ""}{" "}
+                for review
               </p>
             </div>
 
@@ -243,7 +262,7 @@ export default function SupervisorDashboardPage() {
               {pendingProjects?.map((project) => (
                 <Card
                   key={project.id}
-                  className="group bg-gradient-to-br from-background to-gray-50/50 dark:to-gray-800/50 shadow-lg hover:shadow-2xl border-border/50 hover:border-cyan-300/50 dark:hover:border-cyan-600/50 transition-all duration-300 hover:scale-[1.02]"
+                  className="group bg-gradient-to-br from-background to-gray-50/50 dark:to-gray-800/50 shadow-lg border-border/50 hover:border-cyan-300/50 dark:hover:border-cyan-600/50 transition-all duration-300"
                 >
                   <CardHeader className="pb-4">
                     <div className="flex justify-between items-start mb-3">
@@ -268,12 +287,20 @@ export default function SupervisorDashboardPage() {
                     {/* Project Details Grid */}
                     <div className="grid grid-cols-2 gap-4 p-3 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
                       <div className="text-center">
-                        <div className="text-xs text-default-600 font-medium">Academic Year</div>
-                        <div className="font-semibold text-sm">{project.academic_year}</div>
+                        <div className="text-xs text-default-600 font-medium">
+                          Academic Year
+                        </div>
+                        <div className="font-semibold text-sm">
+                          {project.academic_year}
+                        </div>
                       </div>
                       <div className="text-center">
-                        <div className="text-xs text-default-600 font-medium">Student Year</div>
-                        <div className="font-semibold text-sm">{project.student_year}</div>
+                        <div className="text-xs text-default-600 font-medium">
+                          Student Year
+                        </div>
+                        <div className="font-semibold text-sm">
+                          {project.student_year}
+                        </div>
                       </div>
                     </div>
 
@@ -281,8 +308,13 @@ export default function SupervisorDashboardPage() {
                     {project.objectives && (
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                          <Icon icon="mdi:target" className="text-cyan-500 text-sm" />
-                          <span className="text-sm font-medium text-default-600">Objectives</span>
+                          <Icon
+                            icon="mdi:target"
+                            className="text-cyan-500 text-sm"
+                          />
+                          <span className="text-sm font-medium text-default-600">
+                            Objectives
+                          </span>
                         </div>
                         <p className="text-sm text-default-600 leading-relaxed pl-5 border-l-2 border-cyan-200 dark:border-cyan-800">
                           {project.objectives}
@@ -294,17 +326,29 @@ export default function SupervisorDashboardPage() {
                     {project.tags?.length > 0 && (
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                          <Icon icon="mdi:code-tags" className="text-cyan-500 text-sm" />
-                          <span className="text-sm font-medium text-default-600">Technologies</span>
+                          <Icon
+                            icon="mdi:code-tags"
+                            className="text-cyan-500 text-sm"
+                          />
+                          <span className="text-sm font-medium text-default-600">
+                            Technologies
+                          </span>
                         </div>
                         <div className="flex flex-wrap gap-1 pl-5">
                           {project.tags.slice(0, 4).map((tag, idx) => (
-                            <Badge key={idx} variant="outline" className="text-xs py-0 px-2">
+                            <Badge
+                              key={idx}
+                              variant="outline"
+                              className="text-xs py-0 px-2"
+                            >
                               {String(tag)}
                             </Badge>
                           ))}
                           {project.tags.length > 4 && (
-                            <Badge variant="outline" className="text-xs py-0 px-2">
+                            <Badge
+                              variant="outline"
+                              className="text-xs py-0 px-2"
+                            >
                               +{project.tags.length - 4}
                             </Badge>
                           )}
@@ -317,7 +361,7 @@ export default function SupervisorDashboardPage() {
                     {/* Action Buttons */}
                     <div className="grid grid-cols-3 gap-2">
                       <Button
-                        className="bg-green-500 hover:bg-green-600 text-white transition-all duration-300 hover:scale-105"
+                        className="bg-green-500 hover:bg-green-600 text-white transition-all duration-300"
                         disabled={approveMutation.isPending}
                         onClick={() => handleApprove(project)}
                       >
@@ -333,7 +377,7 @@ export default function SupervisorDashboardPage() {
 
                       <Button
                         variant="destructive"
-                        className="transition-all duration-300 hover:scale-105"
+                        className="transition-all duration-300"
                         disabled={rejectMutation.isPending}
                         onClick={() => handleReject(project)}
                       >
@@ -349,7 +393,7 @@ export default function SupervisorDashboardPage() {
 
                       <Button
                         variant="outline"
-                        className="border-cyan-500 text-cyan-600 hover:bg-cyan-50 dark:hover:bg-cyan-950/50 transition-all duration-300 hover:scale-105"
+                        className="border-cyan-500 text-cyan-600 hover:bg-cyan-50 dark:hover:bg-cyan-950/50 transition-all duration-300"
                         onClick={() => navigate(`/projects/${project.id}`)}
                       >
                         <Icon className="w-4 h-4 mr-1" icon="mdi:eye" />
@@ -369,12 +413,21 @@ export default function SupervisorDashboardPage() {
             <DialogHeader>
               <div className="flex items-center gap-3 mb-2">
                 <div className="p-2 bg-red-500/10 rounded-lg">
-                  <Icon icon="mdi:alert-circle" className="text-red-500 text-lg" />
+                  <Icon
+                    icon="mdi:alert-circle"
+                    className="text-red-500 text-lg"
+                  />
                 </div>
-                <DialogTitle className="text-red-600 dark:text-red-400">Reject Project</DialogTitle>
+                <DialogTitle className="text-red-600 dark:text-red-400">
+                  Reject Project
+                </DialogTitle>
               </div>
               <DialogDescription>
-                Please provide a reason for rejecting <span className="font-semibold">"{selectedProject?.title}"</span>.
+                Please provide a reason for rejecting{" "}
+                <span className="font-semibold">
+                  "{selectedProject?.title}"
+                </span>
+                .
               </DialogDescription>
             </DialogHeader>
 
@@ -387,7 +440,8 @@ export default function SupervisorDashboardPage() {
                 className="border-red-200 dark:border-red-800 focus:border-red-500 focus:ring-red-500/20"
               />
               <div className="text-xs text-default-600 bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-                <strong>Tip:</strong> Provide constructive feedback to help the student improve their project.
+                <strong>Tip:</strong> Provide constructive feedback to help the
+                student improve their project.
               </div>
             </div>
 

@@ -26,11 +26,6 @@ export default function ProjectCard({ project }: ProjectCardProps) {
     navigate(`/projects/${project.id}`);
   };
 
-  const handleChatWithAI = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    navigate(`/projects/${project.id}?chat=true`);
-  };
-
   // Get project status color
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {

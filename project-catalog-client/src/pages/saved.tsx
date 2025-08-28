@@ -13,9 +13,7 @@ import {
   Grid3X3,
   List,
   Heart,
-  Trash2,
   Eye,
-  Star
 } from "lucide-react";
 
 import {
@@ -48,11 +46,6 @@ interface SavedProjectDTO {
   student_year: string;
 }
 
-interface Category {
-  key: string;
-  label: string;
-}
-
 export default function SavedProjectsPage() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
@@ -64,6 +57,7 @@ export default function SavedProjectsPage() {
     queryKey: ["currentUser"],
     queryFn: async () => {
       const { data } = await api.get("/users/me");
+
       return data;
     },
   });
@@ -77,6 +71,7 @@ export default function SavedProjectsPage() {
     queryFn: async () => {
       if (!currentUser?.id) return [];
       const { data } = await api.get(`/saved-projects/user/${currentUser.id}`);
+
       return data as SavedProjectDTO[];
     },
     enabled: !!currentUser?.id,
@@ -87,19 +82,19 @@ export default function SavedProjectsPage() {
     if (!savedProjects) return { categories: [], academicYears: [] };
 
     const uniqueCategories = Array.from(
-      new Set(savedProjects.map(p => p.categoryId))
-    ).map(categoryId => ({
+      new Set(savedProjects.map((p) => p.categoryId))
+    ).map((categoryId) => ({
       key: categoryId.toString(),
-      label: `Category ${categoryId}` // You might want to fetch actual category names
+      label: `Category ${categoryId}`, // You might want to fetch actual category names
     }));
 
     const uniqueYears = Array.from(
-      new Set(savedProjects.map(p => p.academic_year))
+      new Set(savedProjects.map((p) => p.academic_year))
     ).filter(Boolean);
 
     return {
       categories: uniqueCategories,
-      academicYears: uniqueYears
+      academicYears: uniqueYears,
     };
   }, [savedProjects]);
 
@@ -107,12 +102,20 @@ export default function SavedProjectsPage() {
   const filteredProjects = useMemo(() => {
     if (!savedProjects) return [];
 
-    return savedProjects.filter(project => {
-      const matchesSearch = project.projectTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          project.projectDescription.toLowerCase().includes(searchQuery.toLowerCase());
+    return savedProjects.filter((project) => {
+      const matchesSearch =
+        project.projectTitle
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        project.projectDescription
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
 
-      const matchesCategory = selectedCategory === "all" || project.categoryId.toString() === selectedCategory;
-      const matchesYear = selectedYear === "all" || project.academic_year === selectedYear;
+      const matchesCategory =
+        selectedCategory === "all" ||
+        project.categoryId.toString() === selectedCategory;
+      const matchesYear =
+        selectedYear === "all" || project.academic_year === selectedYear;
 
       return matchesSearch && matchesCategory && matchesYear;
     });
@@ -129,8 +132,12 @@ export default function SavedProjectsPage() {
                   <Bookmark className="h-12 w-12 text-purple-500" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-foreground mb-2">Loading Saved Projects</h2>
-                  <p className="text-default-600">Please wait while we fetch your bookmarked projects...</p>
+                  <h2 className="text-xl font-semibold text-foreground mb-2">
+                    Loading Saved Projects
+                  </h2>
+                  <p className="text-default-600">
+                    Please wait while we fetch your bookmarked projects...
+                  </p>
                 </div>
               </div>
             </div>
@@ -150,18 +157,24 @@ export default function SavedProjectsPage() {
                 <CardHeader className="text-center">
                   <div className="flex justify-center mb-4">
                     <div className="p-3 bg-gradient-to-br from-red-500/20 to-orange-500/20 rounded-2xl">
-                      <Icon icon="mdi:alert-circle" className="h-8 w-8 text-red-500" />
+                      <Icon
+                        className="h-8 w-8 text-red-500"
+                        icon="mdi:alert-circle"
+                      />
                     </div>
                   </div>
-                  <CardTitle className="text-xl text-red-600">Unable to Load Projects</CardTitle>
+                  <CardTitle className="text-xl text-red-600">
+                    Unable to Load Projects
+                  </CardTitle>
                   <CardDescription>
-                    We couldn't retrieve your saved projects. Please try again later.
+                    We couldn&apos;t retrieve your saved projects. Please try
+                    again later.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
                   <Button
-                    onClick={() => navigate("/")}
                     className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600"
+                    onClick={() => navigate("/")}
                   >
                     Go Home
                   </Button>
@@ -186,16 +199,16 @@ export default function SavedProjectsPage() {
               </div>
             </div>
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
+              <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent mb-4">
                 Saved Projects
               </h1>
               <p className="text-lg text-default-600 max-w-2xl mx-auto">
-                Your collection of bookmarked projects for easy access and inspiration
+                Your collection of bookmarked projects for easy access and
+                inspiration
               </p>
             </div>
           </div>
 
-        
           {/* Search and Filters */}
           <Card className="mb-8 bg-gradient-to-br from-background via-background to-gray-50/30 dark:to-gray-800/30 border-border/50">
             <CardContent className="p-6">
@@ -204,15 +217,18 @@ export default function SavedProjectsPage() {
                 <div className="relative flex-1 w-full lg:w-auto">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-default-500 h-4 w-4" />
                   <Input
+                    className="pl-10 border-purple-200 dark:border-purple-800 focus:border-purple-500 focus:ring-purple-500/20"
                     placeholder="Search saved projects..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 border-purple-200 dark:border-purple-800 focus:border-purple-500 focus:ring-purple-500/20"
                   />
                 </div>
 
                 {/* Category Filter */}
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <Select
+                  value={selectedCategory}
+                  onValueChange={setSelectedCategory}
+                >
                   <SelectTrigger className="w-full lg:w-48 border-purple-200 dark:border-purple-800 focus:border-purple-500 focus:ring-purple-500/20">
                     <Filter className="mr-2 h-4 w-4" />
                     <SelectValue placeholder="All Categories" />
@@ -246,18 +262,22 @@ export default function SavedProjectsPage() {
                 {/* View Mode Toggle */}
                 <div className="flex border border-purple-200 dark:border-purple-800 rounded-lg p-1">
                   <Button
-                    variant={viewMode === "grid" ? "default" : "ghost"}
+                    className={
+                      viewMode === "grid" ? "bg-purple-500 text-white" : ""
+                    }
                     size="sm"
+                    variant={viewMode === "grid" ? "default" : "ghost"}
                     onClick={() => setViewMode("grid")}
-                    className={viewMode === "grid" ? "bg-purple-500 text-white" : ""}
                   >
                     <Grid3X3 className="h-4 w-4" />
                   </Button>
                   <Button
-                    variant={viewMode === "list" ? "default" : "ghost"}
+                    className={
+                      viewMode === "list" ? "bg-purple-500 text-white" : ""
+                    }
                     size="sm"
+                    variant={viewMode === "list" ? "default" : "ghost"}
                     onClick={() => setViewMode("list")}
-                    className={viewMode === "list" ? "bg-purple-500 text-white" : ""}
                   >
                     <List className="h-4 w-4" />
                   </Button>
@@ -265,21 +285,38 @@ export default function SavedProjectsPage() {
               </div>
 
               {/* Active Filters */}
-              {(searchQuery || selectedCategory !== "all" || selectedYear !== "all") && (
+              {(searchQuery ||
+                selectedCategory !== "all" ||
+                selectedYear !== "all") && (
                 <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-border/50">
-                  <span className="text-sm text-default-600">Active filters:</span>
+                  <span className="text-sm text-default-600">
+                    Active filters:
+                  </span>
                   {searchQuery && (
-                    <Badge variant="secondary" className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                    <Badge
+                      className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+                      variant="secondary"
+                    >
                       Search: {searchQuery}
                     </Badge>
                   )}
                   {selectedCategory !== "all" && (
-                    <Badge variant="secondary" className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
-                      Category: {categories.find(c => c.key === selectedCategory)?.label}
+                    <Badge
+                      className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+                      variant="secondary"
+                    >
+                      Category:{" "}
+                      {
+                        categories.find((c) => c.key === selectedCategory)
+                          ?.label
+                      }
                     </Badge>
                   )}
                   {selectedYear !== "all" && (
-                    <Badge variant="secondary" className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                    <Badge
+                      className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+                      variant="secondary"
+                    >
                       Year: {selectedYear}
                     </Badge>
                   )}
@@ -303,12 +340,13 @@ export default function SavedProjectsPage() {
                     No Saved Projects Yet
                   </h3>
                   <p className="text-default-600 mb-6 max-w-md mx-auto">
-                    You haven't saved any projects yet. Browse the project catalog and bookmark the ones that interest you!
+                    You haven&apos;t saved any projects yet. Browse the project
+                    catalog and bookmark the ones that interest you!
                   </p>
                   <Button
-                    onClick={() => navigate("/projects")}
                     className="bg-gradient-to-r from-purple-500 to-pink-500 CardContent:from-purple-600 hover:to-pink-600 text-white
                     transition-all duration-300"
+                    onClick={() => navigate("/projects")}
                   >
                     <Search className="mr-2 h-4 w-4" />
                     Explore Projects
@@ -324,18 +362,21 @@ export default function SavedProjectsPage() {
                       <Filter className="h-16 w-16 text-orange-500" />
                     </div>
                   </div>
-                  <h3 className="text-2xl font-bold mb-4">No Matching Projects</h3>
+                  <h3 className="text-2xl font-bold mb-4">
+                    No Matching Projects
+                  </h3>
                   <p className="text-default-600 mb-6 max-w-md mx-auto">
-                    No saved projects match your current search and filter criteria. Try adjusting your filters.
+                    No saved projects match your current search and filter
+                    criteria. Try adjusting your filters.
                   </p>
                   <Button
+                    className="border-orange-500 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/50"
+                    variant="outline"
                     onClick={() => {
                       setSearchQuery("");
                       setSelectedCategory("all");
                       setSelectedYear("all");
                     }}
-                    variant="outline"
-                    className="border-orange-500 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/50"
                   >
                     Clear Filters
                   </Button>
@@ -343,10 +384,13 @@ export default function SavedProjectsPage() {
               </Card>
             )
           ) : (
-            <div className={viewMode === "grid"
-              ? "grid gap-6 md:grid-cols-2 lg:grid-cols-3"
-              : "space-y-4"
-            }>
+            <div
+              className={
+                viewMode === "grid"
+                  ? "grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+                  : "space-y-4"
+              }
+            >
               {filteredProjects.map((project) => (
                 <EnhancedSavedProjectCard
                   key={project.projectId}
@@ -360,7 +404,8 @@ export default function SavedProjectsPage() {
           {/* Results Summary */}
           {filteredProjects.length > 0 && (
             <div className="mt-8 text-center text-sm text-default-600">
-              Showing {filteredProjects.length} of {savedProjects?.length || 0} saved projects
+              Showing {filteredProjects.length} of {savedProjects?.length || 0}{" "}
+              saved projects
             </div>
           )}
         </div>
@@ -375,13 +420,17 @@ interface EnhancedSavedProjectCardProps {
   viewMode: "grid" | "list";
 }
 
-function EnhancedSavedProjectCard({ project, viewMode }: EnhancedSavedProjectCardProps) {
+function EnhancedSavedProjectCard({
+  project,
+  viewMode,
+}: EnhancedSavedProjectCardProps) {
   const navigate = useNavigate();
 
   const { data: categoryName } = useQuery({
     queryKey: ["categoryName", project.categoryId],
     queryFn: async () => {
       const { data } = await api.get(`/category/${project.categoryId}`);
+
       return data;
     },
     enabled: !!project.categoryId,
@@ -396,17 +445,21 @@ function EnhancedSavedProjectCard({ project, viewMode }: EnhancedSavedProjectCar
               <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
                 <img
                   alt={project.projectTitle}
-                  src={project.coverImageUrl}
                   className="w-full h-full object-cover"
+                  src={project.coverImageUrl}
                 />
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-lg mb-2 line-clamp-1">{project.projectTitle}</h3>
-              <p className="text-default-600 text-sm mb-3 line-clamp-2">{project.projectDescription}</p>
+              <h3 className="font-semibold text-lg mb-2 line-clamp-1">
+                {project.projectTitle}
+              </h3>
+              <p className="text-default-600 text-sm mb-3 line-clamp-2">
+                {project.projectDescription}
+              </p>
               <div className="flex items-center gap-4 text-xs text-default-500">
                 {categoryName && (
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge className="text-xs" variant="secondary">
                     {categoryName}
                   </Badge>
                 )}
@@ -425,8 +478,8 @@ function EnhancedSavedProjectCard({ project, viewMode }: EnhancedSavedProjectCar
               </div>
             </div>
             <Button
-              onClick={() => navigate(`/projects/${project.projectId}`)}
               className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+              onClick={() => navigate(`/projects/${project.projectId}`)}
             >
               <Eye className="mr-2 h-4 w-4" />
               View
@@ -443,8 +496,8 @@ function EnhancedSavedProjectCard({ project, viewMode }: EnhancedSavedProjectCar
         <div className="w-full h-48 overflow-hidden relative">
           <img
             alt={project.projectTitle}
-            src={project.coverImageUrl}
             className="w-full h-full object-cover  transition-transform duration-300"
+            src={project.coverImageUrl}
           />
           <div className="absolute top-3 right-3">
             <div className="p-2 bg-white/90 dark:bg-gray-900/90 rounded-full backdrop-blur-sm">
@@ -460,7 +513,7 @@ function EnhancedSavedProjectCard({ project, viewMode }: EnhancedSavedProjectCar
       </CardHeader>
       <CardContent className="pt-0">
         {categoryName && (
-          <Badge variant="secondary" className="mb-3 text-xs">
+          <Badge className="mb-3 text-xs" variant="secondary">
             {categoryName}
           </Badge>
         )}
@@ -486,8 +539,8 @@ function EnhancedSavedProjectCard({ project, viewMode }: EnhancedSavedProjectCar
       </CardContent>
       <div className="p-4 pt-0">
         <Button
-          onClick={() => navigate(`/projects/${project.projectId}`)}
           className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white transition-all duration-300 group-hover:shadow-purple-500/25"
+          onClick={() => navigate(`/projects/${project.projectId}`)}
         >
           <Eye className="mr-2 h-4 w-4" />
           View Project

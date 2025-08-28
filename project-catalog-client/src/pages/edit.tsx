@@ -18,37 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import api from "@/config/api";
-
-// Member interface
-interface Member {
-  name: string;
-  rollNumber: string;
-}
-
-interface ProjectRequestDTO {
-  title: string;
-  description: string;
-  body: string;
-  objectives: string;
-  githubLink: string;
-  coverImageUrl: string;
-  academic_year: string;
-  student_year: string;
-  categoryId: string;
-  status: string;
-  projectFiles: File[];
-  tags: string;
-  membersJson: string;
-  benefits: string;
-}
 
 const EditProjectPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -111,10 +81,6 @@ const EditProjectPage = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
   const handleQuillChange = (content: string) => {
     setFormData((prev) => ({ ...prev, body: content }));
   };
@@ -171,7 +137,6 @@ const EditProjectPage = () => {
       toolbar: [
         { header: "1" },
         { header: "2" },
-        { header: "3" },
         "bold",
         "italic",
         "underline",
@@ -192,7 +157,6 @@ const EditProjectPage = () => {
         "link",
         "image",
         "video",
-        "clean",
       ],
     }),
     []
@@ -206,11 +170,15 @@ const EditProjectPage = () => {
             <div className="flex items-center justify-center min-h-[60vh]">
               <div className="text-center space-y-4">
                 <div className="p-4 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl">
-                  <Spinner size="lg" className="text-cyan-500" />
+                  <Spinner className="text-cyan-500" size="lg" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-foreground mb-2">Loading Project</h2>
-                  <p className="text-default-600">Please wait while we fetch your project details...</p>
+                  <h2 className="text-xl font-semibold text-foreground mb-2">
+                    Loading Project
+                  </h2>
+                  <p className="text-default-600">
+                    Please wait while we fetch your project details...
+                  </p>
                 </div>
               </div>
             </div>
@@ -267,15 +235,20 @@ const EditProjectPage = () => {
         }
       `}</style>
 
-      <div className={`flex flex-col min-h-screen bg-background  mx-auto
+      <div
+        className={`flex flex-col min-h-screen bg-background  mx-auto
         ${showProjectInfo ? "" : "max-w-5xl"}
-        `}>
+        `}
+      >
         <div className="container mx-auto max-w-7xl p-4 md:p-6 lg:p-8">
           {/* Enhanced Header Section */}
           <div className="text-center space-y-6 mb-8">
             <div className="flex justify-center mb-6">
               <div className="p-4 bg-gradient-to-br from-orange-500/20 to-red-500/20 dark:from-orange-500/30 dark:to-red-500/30 rounded-2xl">
-                <Icon className="h-12 w-12 text-orange-500" icon="mdi:pencil-circle" />
+                <Icon
+                  className="h-12 w-12 text-orange-500"
+                  icon="mdi:pencil-circle"
+                />
               </div>
             </div>
             <div className="flex justify-center items-center gap-4">
@@ -290,23 +263,24 @@ const EditProjectPage = () => {
             </div>
           </div>
           <div className="mb-4">
-          <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowProjectInfo(!showProjectInfo)}
-                className="border-orange-500 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/50"
-              >
-                <Icon 
-                  icon={showProjectInfo ? "mdi:eye-off" : "mdi:eye"} 
-                  className="mr-2" 
-                />
-                {showProjectInfo ? "Hide" : "Show"} Project Information Column
-          </Button>
+            <Button
+              className="border-orange-500 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/50"
+              size="sm"
+              variant="outline"
+              onClick={() => setShowProjectInfo(!showProjectInfo)}
+            >
+              <Icon
+                className="mr-2"
+                icon={showProjectInfo ? "mdi:eye-off" : "mdi:eye"}
+              />
+              {showProjectInfo ? "Hide" : "Show"} Project Information Column
+            </Button>
           </div>
           {/* Form */}
           <form className="space-y-8" onSubmit={handleSubmit}>
-          
-            <div className={`grid gap-8 ${showProjectInfo ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-1'}`}>
+            <div
+              className={`grid gap-8 ${showProjectInfo ? "grid-cols-1 lg:grid-cols-3" : "grid-cols-1"}`}
+            >
               {/* Left Column - General Info */}
               {showProjectInfo && (
                 <div className="space-y-6 lg:col-span-1">
@@ -314,64 +288,77 @@ const EditProjectPage = () => {
                     <CardHeader>
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-orange-500/10 rounded-lg">
-                          <Icon icon="mdi:information-outline" className="text-xl text-orange-500" />
+                          <Icon
+                            className="text-xl text-orange-500"
+                            icon="mdi:information-outline"
+                          />
                         </div>
                         <div>
-                          <CardTitle className="text-xl">Project Information</CardTitle>
+                          <CardTitle className="text-xl">
+                            Project Information
+                          </CardTitle>
                           <CardDescription>
-                            Update your project's core details
+                            Update your project&apos;s core details
                           </CardDescription>
                         </div>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="title" className="font-medium">Project Title *</Label>
+                        <Label className="font-medium" htmlFor="title">
+                          Project Title *
+                        </Label>
                         <Input
                           required
+                          className="border-orange-200 dark:border-orange-800 focus:border-orange-500 focus:ring-orange-500/20"
                           id="title"
                           name="title"
                           placeholder="e.g., AI-Powered Chatbot"
                           value={formData.title}
                           onChange={handleInputChange}
-                          className="border-orange-200 dark:border-orange-800 focus:border-orange-500 focus:ring-orange-500/20"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="description" className="font-medium">Short Description *</Label>
+                        <Label className="font-medium" htmlFor="description">
+                          Short Description *
+                        </Label>
                         <Textarea
                           required
+                          className="border-orange-200 dark:border-orange-800 focus:border-orange-500 focus:ring-orange-500/20 min-h-[100px]"
                           id="description"
                           name="description"
                           placeholder="Brief summary of your project"
                           value={formData.description}
                           onChange={handleInputChange}
-                          className="border-orange-200 dark:border-orange-800 focus:border-orange-500 focus:ring-orange-500/20 min-h-[100px]"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="benefits" className="font-medium">Benefits (Optional)</Label>
+                        <Label className="font-medium" htmlFor="benefits">
+                          Benefits (Optional)
+                        </Label>
                         <Textarea
+                          className="border-orange-200 dark:border-orange-800 focus:border-orange-500 focus:ring-orange-500/20 min-h-[80px]"
                           id="benefits"
                           name="benefits"
                           placeholder="How will this project benefit users or the community?"
                           value={formData.benefits}
                           onChange={handleInputChange}
-                          className="border-orange-200 dark:border-orange-800 focus:border-orange-500 focus:ring-orange-500/20 min-h-[80px]"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="githubLink" className="font-medium">GitHub Repository (Optional)</Label>
+                        <Label className="font-medium" htmlFor="githubLink">
+                          GitHub Repository (Optional)
+                        </Label>
                         <Input
+                          className="border-orange-200 dark:border-orange-800 focus:border-orange-500 focus:ring-orange-500/20"
                           id="githubLink"
                           name="githubLink"
                           placeholder="https://github.com/username/project"
                           value={formData.githubLink}
                           onChange={handleInputChange}
-                          className="border-orange-200 dark:border-orange-800 focus:border-orange-500 focus:ring-orange-500/20"
                         />
                       </div>
                     </CardContent>
@@ -380,11 +367,10 @@ const EditProjectPage = () => {
                   <Card className="bg-gradient-to-br from-background to-gray-50/50 dark:to-gray-800/50 border-border/50">
                     <CardHeader>
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-orange-500/10 rounded-lg">
-                          <Icon icon="mdi:file-upload" className="text-xl text-orange-500" />
-                        </div>
                         <div>
-                          <CardTitle className="text-xl">Project Files</CardTitle>
+                          <CardTitle className="text-xl">
+                            Project Files
+                          </CardTitle>
                           <CardDescription>
                             Upload additional files or replace existing ones
                           </CardDescription>
@@ -395,24 +381,34 @@ const EditProjectPage = () => {
                       <div className="space-y-3">
                         <Input
                           multiple
+                          className="border-orange-200 dark:border-orange-800 focus:border-orange-500 focus:ring-orange-500/20"
                           id="projectFiles"
                           name="projectFiles"
                           type="file"
                           onChange={handleFileChange}
-                          className="border-orange-200 dark:border-orange-800 focus:border-orange-500 focus:ring-orange-500/20"
                         />
                         <p className="text-xs text-default-600">
                           Supported formats: PDF, DOC, PPT, Images, and more
                         </p>
                         {projectFiles.length > 0 && (
                           <div className="space-y-1">
-                            <Label className="text-sm font-medium">Selected Files ({projectFiles.length})</Label>
+                            <Label className="text-sm font-medium">
+                              Selected Files ({projectFiles.length})
+                            </Label>
                             <div className="space-y-1">
                               {projectFiles.map((file, index) => (
-                                <div key={index} className="flex items-center gap-2 text-sm text-default-600 bg-background/50 p-2 rounded">
-                                  <Icon icon="mdi:file-document-outline" className="text-orange-500" />
+                                <div
+                                  key={index}
+                                  className="flex items-center gap-2 text-sm text-default-600 bg-background/50 p-2 rounded"
+                                >
+                                  <Icon
+                                    className="text-orange-500"
+                                    icon="mdi:file-document-outline"
+                                  />
                                   <span className="truncate">{file.name}</span>
-                                  <span className="text-xs text-default-600">({(file.size / 1024 / 1024).toFixed(1)} MB)</span>
+                                  <span className="text-xs text-default-600">
+                                    ({(file.size / 1024 / 1024).toFixed(1)} MB)
+                                  </span>
                                 </div>
                               ))}
                             </div>
@@ -425,15 +421,22 @@ const EditProjectPage = () => {
               )}
 
               {/* Right Column - Project Body Editor */}
-              <div className={`${showProjectInfo ? 'lg:col-span-2' : 'w-full'}`}>
+              <div
+                className={`${showProjectInfo ? "lg:col-span-2" : "w-full"}`}
+              >
                 <Card className="bg-gradient-to-br from-background to-gray-50/50 dark:to-gray-800/50 border-border/50 h-full">
                   <CardHeader>
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-orange-500/10 rounded-lg">
-                        <Icon icon="mdi:file-document-edit-outline" className="text-xl text-orange-500" />
+                        <Icon
+                          className="text-xl text-orange-500"
+                          icon="mdi:file-document-edit-outline"
+                        />
                       </div>
                       <div>
-                        <CardTitle className="text-xl">Project Documentation</CardTitle>
+                        <CardTitle className="text-xl">
+                          Project Documentation
+                        </CardTitle>
                         <CardDescription>
                           Edit your comprehensive project report
                         </CardDescription>
@@ -444,14 +447,22 @@ const EditProjectPage = () => {
                     <div className="space-y-4">
                       <div className="bg-gradient-to-br from-orange-50/50 to-red-50/50 dark:from-orange-950/50 dark:to-red-950/50 p-4 rounded-lg border border-orange-200/50 dark:border-orange-800/50">
                         <div className="flex items-center gap-2 mb-2">
-                          <Icon icon="mdi:lightbulb-on" className="text-orange-500" />
-                          <span className="text-sm font-medium text-orange-700 dark:text-orange-300">Editing Tips</span>
+                          <Icon
+                            className="text-orange-500"
+                            icon="mdi:lightbulb-on"
+                          />
+                          <span className="text-sm font-medium text-orange-700 dark:text-orange-300">
+                            Editing Tips
+                          </span>
                         </div>
                         <ul className="text-sm text-default-600 space-y-1">
                           <li>• Focus on recent changes and improvements</li>
                           <li>• Update results and findings</li>
                           <li>• Add new code snippets or diagrams</li>
                           <li>• Include any lessons learned</li>
+                          <li>
+                            • <b>Use images smaller than 1MB</b>
+                          </li>
                         </ul>
                       </div>
 
@@ -468,23 +479,31 @@ const EditProjectPage = () => {
                       </div>
 
                       <div className="text-sm text-default-600 bg-background/50 p-3 rounded-lg border border-border/50">
-                        <Icon icon="mdi:information-outline" className="inline mr-1" />
-                        Your changes will be saved and the project will be updated immediately.
+                        <Icon
+                          className="inline mr-1"
+                          icon="mdi:information-outline"
+                        />
+                        Your changes will be saved and the project will be
+                        updated immediately.
                       </div>
 
                       {/* Update Button - Moved under editor */}
                       <div className="bg-gradient-to-r from-orange-500/10 to-red-500/10 dark:from-orange-500/10 dark:to-red-500/10 rounded-xl p-6 border border-orange-200/50 dark:border-orange-800/50 mt-6">
                         <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
                           <div className="text-center">
-                            <h3 className="text-lg font-semibold text-foreground mb-2">Ready to Update Your Project?</h3>
-                            <p className="text-default-600 text-sm">Review your changes and save your updates</p>
+                            <h3 className="text-lg font-semibold text-foreground mb-2">
+                              Ready to Update Your Project?
+                            </h3>
+                            <p className="text-default-600 text-sm">
+                              Review your changes and save your updates
+                            </p>
                           </div>
                           <div className="flex gap-3">
                             {submitMessage && (
-                              <Badge 
+                              <Badge
                                 className={`px-4 py-2 ${
-                                  submitMessage.includes("successfully") 
-                                    ? "bg-green-500/10 text-green-600 border-green-500/20" 
+                                  submitMessage.includes("successfully")
+                                    ? "bg-green-500/10 text-green-600 border-green-500/20"
                                     : "bg-red-500/10 text-red-600 border-red-500/20"
                                 }`}
                               >
@@ -492,19 +511,22 @@ const EditProjectPage = () => {
                               </Badge>
                             )}
                             <Button
-                              size="lg"
                               className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg hover:shadow-xl transition-all duration-300"
                               disabled={isSubmitting}
+                              size="lg"
                               type="submit"
                             >
                               {isSubmitting ? (
                                 <>
-                                  <Spinner size="sm" className="mr-2" />
+                                  <Spinner className="mr-2" size="sm" />
                                   Updating Project...
                                 </>
                               ) : (
                                 <>
-                                  <Icon className="mr-2" icon="mdi:content-save" />
+                                  <Icon
+                                    className="mr-2"
+                                    icon="mdi:content-save"
+                                  />
                                   Update Project
                                 </>
                               )}
@@ -518,7 +540,6 @@ const EditProjectPage = () => {
               </div>
             </div>
           </form>
-
         </div>
       </div>
     </DefaultLayout>
