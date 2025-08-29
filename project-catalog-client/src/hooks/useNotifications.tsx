@@ -55,7 +55,7 @@ export const useNotificationContext = () => {
 
   // Get WebSocket URL from
   const subscriptionRef = useRef<StompSubscription | null>(null);
-  
+
   const getWebSocketUrl = useCallback(() => {
     const apiBaseUrl = api.defaults.baseURL || "http://localhost:8080";
     return apiBaseUrl + "/ws";
@@ -165,16 +165,17 @@ export const useNotificationContext = () => {
       });
 
       // Remove the local 'let subscription: StompSubscription | null = null;' line
-
       client.onConnect = () => {
         console.log("✅ STOMP connected successfully!");
         setConnectionStatus("connected");
         setReconnectAttempts(0);
 
         // ✅ Use subscriptionRef.current to check and manage subscription
-        if (!subscriptionRef.current) { // <-- Check ref instead of local var
+        if (!subscriptionRef.current) {
+          // <-- Check ref instead of local var
           console.log(`📡 Subscribing to /topic/notifications/${userId}`);
-          const newSubscription = client.subscribe( // <-- Assign to a new const
+          const newSubscription = client.subscribe(
+            // <-- Assign to a new const
             `/topic/notifications/${userId}`,
             (message: IMessage) => {
               try {
@@ -184,8 +185,11 @@ export const useNotificationContext = () => {
                 setNotifications((prev) => {
                   // Check for duplicates before adding (Safety net)
                   if (prev.some((n) => n.id === notification.id)) {
-                     console.warn("Duplicate notification ID received, ignoring:", notification.id);
-                     return prev;
+                    console.warn(
+                      "Duplicate notification ID received, ignoring:",
+                      notification.id
+                    );
+                    return prev;
                   }
                   // Add new notification to the beginning of the list
                   return [notification, ...prev];
@@ -202,7 +206,7 @@ export const useNotificationContext = () => {
           // Store the new subscription in the ref
           subscriptionRef.current = newSubscription; // <-- Store in ref
         } else {
-           console.log("Already subscribed, skipping new subscription.");
+          console.log("Already subscribed, skipping new subscription.");
         }
 
         // Fetch initial notifications only on first connect
@@ -229,14 +233,14 @@ export const useNotificationContext = () => {
         setConnectionStatus("error");
       };
 
-      // 👉 Step 3: Activate client
       client.activate();
       setStompClient(client);
 
-      // Cleanup function returned by connectStomp
       return () => {
-        console.log("🧹 Cleaning up STOMP connection (connectStomp cleanup)...");
-        // Unsubscribe using the ref
+        console.log(
+          "🧹 Cleaning up STOMP connection (connectStomp cleanup)..."
+        );
+
         if (subscriptionRef.current) {
           console.log("Unsubscribing via ref...");
           try {
@@ -244,9 +248,9 @@ export const useNotificationContext = () => {
           } catch (e) {
             console.warn("Error during unsubscribe in cleanup:", e);
           }
-          subscriptionRef.current = null; // <-- Clear ref in cleanup
+          subscriptionRef.current = null;
         }
-        // Deactivate client
+
         if (client && client.active) {
           console.log("Deactivating client...");
           client.deactivate();
@@ -256,77 +260,72 @@ export const useNotificationContext = () => {
       console.error("❌ STOMP setup failed:", err);
       setConnectionStatus("error");
     }
-  }, [getWebSocketUrl, reconnectAttempts, fetchNotifications]); // Ensure dependencies are correct
-
-  // Manual reconnect function
+  }, [getWebSocketUrl, reconnectAttempts, fetchNotifications]);
   const reconnect = useCallback(() => {
     console.log("🔄 Manual reconnection requested");
     setReconnectAttempts(0);
-    // Explicitly unsubscribe and clear ref on manual reconnect
     if (subscriptionRef.current) {
       console.log("Unsubscribing via ref (reconnect)...");
       try {
-         subscriptionRef.current.unsubscribe();
+        subscriptionRef.current.unsubscribe();
       } catch (e) {
-         console.warn("Error during unsubscribe in reconnect:", e);
+        console.warn("Error during unsubscribe in reconnect:", e);
       }
-      subscriptionRef.current = null; // <-- Clear ref on reconnect
+      subscriptionRef.current = null;
     }
-    // Deactivate existing client if present
+
     if (stompClient) {
-      if(stompClient.connected){
-         console.log("Deactivating connected client (reconnect)...");
-         stompClient.deactivate();
+      if (stompClient.connected) {
+        console.log("Deactivating connected client (reconnect)...");
+        stompClient.deactivate();
       } else {
-         // If not connected, just clear the state to trigger cleanup/useEffect
-         console.log("Client not connected, clearing state (reconnect)...");
-         setStompClient(null);
-         setConnectionStatus("disconnected");
+        console.log("Client not connected, clearing state (reconnect)...");
+        setStompClient(null);
+        setConnectionStatus("disconnected");
       }
     }
-    // Delay the reconnection attempt slightly
+
     setTimeout(() => connectStomp(), 1000);
   }, [connectStomp, stompClient]);
 
-  // Initialize STOMP connection
-    // Initialize STOMP connection
-    useEffect(() => {
-      console.log("🚀 Initializing STOMP connection useEffect...");
-      let cleanupFn: (() => void) | undefined;
-      
-      connectStomp().then((cleanup) => {
-        cleanupFn = cleanup;
-      });
-  
-      // Return the cleanup function from connectStomp, or define one here if connectStomp doesn't return one immediately
-      return () => {
-        console.log("🛑 Cleaning up STOMP connection (main useEffect cleanup)...");
-        // The cleanup function returned by connectStomp (when it resolves/activates)
-        // or the one defined inside connectStomp will handle the actual cleanup.
-        // We can also add explicit cleanup here if needed, but the ref cleanup in connectStomp's return should suffice.
-        if (cleanupFn) {
-           console.log("Calling cleanup function returned by connectStomp...");
-           cleanupFn();
-        }
-        // Ensure ref is cleared in case cleanupFn wasn't called or failed
-        if(subscriptionRef.current){
-           console.warn("Subscription ref still active in main useEffect cleanup, forcing unsubscribe.");
-           try {
-              subscriptionRef.current.unsubscribe();
-           } catch(e){
-              console.warn("Error forcing unsubscribe in main useEffect cleanup:", e);
-           }
-           subscriptionRef.current = null; // <-- Ensure ref is cleared
-        }
-      };
-    }, [connectStomp]); // Make sure connectStomp is in the dependency array // Make sure connectStomp is in the dependency array
+  useEffect(() => {
+    console.log("🚀 Initializing STOMP connection useEffect...");
+    let cleanupFn: (() => void) | undefined;
 
-  // Initial fetch of notifications
+    connectStomp().then((cleanup) => {
+      cleanupFn = cleanup;
+    });
+
+    return () => {
+      console.log(
+        "🛑 Cleaning up STOMP connection (main useEffect cleanup)..."
+      );
+
+      if (cleanupFn) {
+        console.log("Calling cleanup function returned by connectStomp...");
+        cleanupFn();
+      }
+
+      if (subscriptionRef.current) {
+        console.warn(
+          "Subscription ref still active in main useEffect cleanup, forcing unsubscribe."
+        );
+        try {
+          subscriptionRef.current.unsubscribe();
+        } catch (e) {
+          console.warn(
+            "Error forcing unsubscribe in main useEffect cleanup:",
+            e
+          );
+        }
+        subscriptionRef.current = null;
+      }
+    };
+  }, [connectStomp]);
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
 
-  // Request notification permission on mount
   useEffect(() => {
     if ("Notification" in window && Notification.permission === "default") {
       Notification.requestPermission();
