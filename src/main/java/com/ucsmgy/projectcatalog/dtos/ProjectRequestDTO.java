@@ -24,6 +24,7 @@ public class ProjectRequestDTO {
     private String approvalStatus;
     private List<MultipartFile> projectFiles;
     private List<String> tags;
+    private String tagsJson;
     private String membersJson;
 }
 

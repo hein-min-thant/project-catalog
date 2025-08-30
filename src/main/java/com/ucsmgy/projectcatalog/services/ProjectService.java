@@ -34,6 +34,9 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import static com.ucsmgy.projectcatalog.mappers.ProjectMapper.objectMapper;
 
 @Service
 @RequiredArgsConstructor
@@ -77,13 +80,15 @@ public class ProjectService {
                     throw new RuntimeException("Supervisor ID is required for non-admin users");
                 }
                 project.setApprovalStatus(Project.ApprovalStatus.PENDING);
+
+                eventPublisher.publishEvent(new ProjectSubmitEvent(this,project.getId(), dto.getSupervisorId(), user.getName(),project.getTitle(),project.getSupervisor().getName()));
+
             }
             
             applyDtoUpdatesAndUploads(project, dto , membersMap);
 
             Project savedProject = projectRepository.save(project);
 
-            eventPublisher.publishEvent(new ProjectSubmitEvent(this,project.getId(), dto.getSupervisorId(), user.getName(),project.getTitle(),project.getSupervisor().getName()));
             return projectMapper.toDTO(savedProject);
 
         } catch (Exception e) {
@@ -99,7 +104,7 @@ public class ProjectService {
         applyDtoUpdatesAndUploads(project, dto ,membersMap);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User with ID " + userId + " not found"));
-        eventPublisher.publishEvent(new ProjectSubmitEvent(this,project.getId(),project.getApprovedBy().getId(),user.getName(),project.getTitle(), project.getApprovedBy().getName()));
+        eventPublisher.publishEvent(new ProjectSubmitEvent(this,project.getId(),dto.getSupervisorId(),user.getName(),project.getTitle(), project.getSupervisor().getName()));
 
         return projectMapper.toDTO(projectRepository.save(project));
     }
@@ -126,7 +131,8 @@ public class ProjectService {
         if(dto.getStudent_year() != null){
             project.setStudent_year(dto.getStudent_year());
         }
-        if (dto.getTags() != null && !dto.getTags().isEmpty()) {
+
+                if (dto.getTags() != null && !dto.getTags().isEmpty()) {
             Set<Tag> tagEntities = dto.getTags().stream()
                     .map(name -> tagRepository.findByNameIgnoreCase(name)
                             .orElseGet(() -> {
@@ -136,6 +142,23 @@ public class ProjectService {
                             }))
                     .collect(Collectors.toSet());
             project.setTags(tagEntities);
+        } else if (dto.getTagsJson() != null && !dto.getTagsJson().isEmpty()) {
+            // Parse tags from JSON string if tags list is empty
+            try {
+                List<String> tagNames = objectMapper.readValue(dto.getTagsJson(), new TypeReference<List<String>>() {});
+                Set<Tag> tagEntities = tagNames.stream()
+                        .filter(name -> name != null && !name.trim().isEmpty())
+                        .map(name -> tagRepository.findByNameIgnoreCase(name.trim())
+                                .orElseGet(() -> {
+                                    Tag newTag = new Tag();
+                                    newTag.setName(name.trim());
+                                    return tagRepository.save(newTag);
+                                }))
+                        .collect(Collectors.toSet());
+                project.setTags(tagEntities);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to parse tags JSON", e);
+            }
         }
 
 

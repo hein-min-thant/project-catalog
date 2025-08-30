@@ -2,23 +2,19 @@ spring:
   config :
     import: optional:file:.env[.properties]
   datasource:
-    url: jdbc:postgresql://ep-cold-rice-a1uirpy2-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
-    username: neondb_owner
-    password: npg_YxkP5oAtfcb7
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   jpa:
     show-sql: true
 
 imgbb:
   api:
-    key: a10b6fb7a8c83aed447e49662c756b81
+    key: ${IMGBB_KEY}
 
-mega:
-  email: heinminthant259@gmail.com
-  password: Phyothirikyaw@25
-  upload-directory: /ucsmg
 
 dropbox:
-  access-token: "sl.u.AF9WN_JJdOhMaDfI9dYZYjnrvjkMpzamf9Vj8vrN_BciDvoixn2pt2U0VvwdYaQZd8qr3-o4zN8CAVTapORD8hL8ZT3wPtJyMVwpVLsgCbbw7AC5Fxrhexa8BXcxttiVN_ESSfyHKtnfJs-12jdIcsBqeva1B1bzGnv8Rq2Uzq3ZTN9cSIpiN4oMDrAO0xZGwr7jnX2dCX4etCYxCZ2ReIssKbkhwCcmbSriiMLTS9X6mV8D1slIWQm7fNM_o40AucLAETSIX2VwrIibaaiZWbCZvBKptdu9BLHlwtdNhb0NQrViNbR-QRoIQrtt6J4xsPijdrswmWH0qAtaI9aPPCohsGKumOBKHcX2cvp6tpoQUQYfYoug4FzWTp4y64xgAjJa2izm3YQ5-pb8Yxg43M2KTmCHPpOyQTvMg__uqPZrlBjRt1Kz-GFOf6STq60ivjtCzMFt1AOOoPRL20ODf5QeP5AxTe_j70z6DsRKQFIktKghwgx_J7bNKakAXdybhshAkBNoICvd8S5A49StvulQeQY1X-9nS_9xV-7lJMHUdFORgBTkrVU0DoxzNW69Cd1XdnivlVjQ2WYUO0hngack71XpvfKFXFm3MD3dSKmUtuO3Z2kXL_BR1U-usP7GgD4BPxayX_lVfmcrZeuz4K_QzbETgjM3axq5z0aQBPfF3JzEMDQsth-TkHBCjc9bVwKYB7VPRe0HhLeBBGdxilHvk7knmSbJAyILdbSl0uAXyHKqdsdoR7Ijr8h4Yxd9zVUW3sJXOk1meODsSgK1LLpEfvyTtKcpRiq0guefuv9LdaQuPagvSflIDzgWiJKJ4DWQjYWGMnvXrMj4dF-RiCcTGPJ8PR7IgT5GhHU-Vr_n6aB3eyIuB6DJVxmaHgfoTT6pTyVktO6MET01MuYULd0vWs92eMEhQyz02enMr3U30phQoJK1IIWmHF1DZxzoVTqgu4Kxv0saXW2uXnmiFDCnrHKlmiBdKq4p6fPWvoGIzOYnAeLn8CHkyGjX3Zb37ee8T0sZ3nrzycSq1wVFrP-9o6DWsGwm6gOagyqrMAXXwakEfFxj651FQka9k3J0mTABBo5mwojBPdgttgfSLIi82CpEEgHpGVuGOYFwgNPfGbbB31P8GHQAlMaPpKHFy6ZtN1_8ZH7kZYF8BXK50eBny4ULUFd8r7Q764tHTEl-ECcgfaO6RUYnicxI3YNZmShvhjAppJK229M5wCd98nlOd4-Qx99iXks-CHQWVkzZoDQUpey3QQOzhAlfsCMj4WB96dr-Jc4NjVdtaIggZnkdrdmQBoKF2lXFysIrEslrd2GKmRS5CIpUUBm2zYE1lr4MHrQDiP4WlmlX73POwcMCWtNyg3-5AgS2YiZnZJjax5csff4DMdiTp0L2C4fGfi1OQJQ31RQgixiAhvUjyUigMn58k9ZaSvOlQpbT40IEnA"
+  access-token: ${DROP_BOX_ACCESS_TOKEN}
   client-identifier: project-catalog/1.0
 
 openrouter:
