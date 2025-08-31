@@ -1,6 +1,6 @@
 # Project Catalog
 
-Project Catalog is a full-stack web application designed to help users submit, review, and manage projects in an academic or team environment. It features real-time notifications, project approval workflows, comments, and user management.
+Project Catalog is a backend application designed to help users submit, review, and manage projects in an academic or team environment. It features real-time notifications, project approval workflows, comments, and user management.
 
 ## Features
 
