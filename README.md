@@ -25,7 +25,7 @@ Project Catalog is a full-stack web application designed to help users submit, r
 
 ### Prerequisites
 
-- Java 17+
+- Java 24
 - Node.js 18+
 - (Recommended) PostgreSQL/MySQL
 
@@ -44,21 +44,6 @@ Project Catalog is a full-stack web application designed to help users submit, r
 
    ```bash
    ./mvnw spring-boot:run
-   ```
-
-### Frontend Setup
-
-1. Navigate to the client directory:
-
-   ```bash
-   cd project-catalog-client
-   ```
-
-2. Install dependencies and start:
-
-   ```bash
-   npm install
-   npm run dev
    ```
 
 ### WebSocket
