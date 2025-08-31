@@ -84,8 +84,10 @@ public class UserService {
     }
 
     public void deleteUser(Long userId) {
-        var user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-        userRepository.delete(user);
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+        user.setActive(false);
+        userRepository.save(user);
     }
 
     public void changePassword(Long userId, ChangePasswordRequest request){

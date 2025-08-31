@@ -1,5 +1,6 @@
 package com.ucsmgy.projectcatalog.dtos;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -14,6 +15,8 @@ public class UserDto {
     private String avatarUrl;
     private String bio;
     private String role;
+    @JsonProperty("is_active")
+    private boolean active;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

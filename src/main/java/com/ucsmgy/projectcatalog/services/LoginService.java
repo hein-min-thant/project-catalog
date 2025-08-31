@@ -35,6 +35,9 @@ public class LoginService {
         if (userOptional.isEmpty()) {
             throw new AccessDeniedException("Invalid email or password");
         }
+        if(!userOptional.get().isActive()){
+            throw new AccessDeniedException("You Are Banned");
+        }
         User user = userOptional.get();
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {

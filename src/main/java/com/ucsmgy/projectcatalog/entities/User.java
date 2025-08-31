@@ -49,6 +49,9 @@ public class User {
     @Column(name = "role")
     private String role;
 
+    @Column(name = "is_active", nullable = false)
+    private boolean active = true;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore // <-- Add this: Ignore the projects list
     private List<Project> projects = new ArrayList<>();

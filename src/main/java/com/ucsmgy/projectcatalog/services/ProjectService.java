@@ -104,8 +104,13 @@ public class ProjectService {
         applyDtoUpdatesAndUploads(project, dto ,membersMap);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User with ID " + userId + " not found"));
-        eventPublisher.publishEvent(new ProjectSubmitEvent(this,project.getId(),dto.getSupervisorId(),user.getName(),project.getTitle(), project.getSupervisor().getName()));
 
+        if ("ADMIN".equals(user.getRole())){
+            project.setApprovalStatus(Project.ApprovalStatus.valueOf("APPROVED"));
+            eventPublisher.publishEvent(new ProjectSubmitEvent(this,project.getId(),user.getId(),user.getName(),project.getTitle(), user.getName()));
+        }else {
+            eventPublisher.publishEvent(new ProjectSubmitEvent(this, project.getId(), dto.getSupervisorId(), user.getName(), project.getTitle(), project.getSupervisor().getName()));
+        }
         return projectMapper.toDTO(projectRepository.save(project));
     }
 
