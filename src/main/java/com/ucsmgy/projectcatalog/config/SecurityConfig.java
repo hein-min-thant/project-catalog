@@ -44,7 +44,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/ws/**").permitAll() // allow WebSocket handshake
-                        .requestMatchers(HttpMethod.POST, "/users/login/**","/download","/generate", "/users/register/request-code", "/users/register/verify-and-create").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/users/login/**","/download","/generate", "/users/register/request-code","/users/forgot-password","/users/reset-password", "/users/register/verify-and-create").permitAll()
                         .requestMatchers(HttpMethod.GET, "/users/login/**", "/users/register/request-code", "/users/register/verify-and-create").permitAll()
                         .anyRequest().authenticated()
                 )

@@ -12,7 +12,8 @@ public class SavedProjectResponseDTO {
     private String projectTitle;
     private String projectDescription;
     private Long userId;
-    private Long categoryId;
+    private Long departmentId;
+    private Long courseId;
     private String coverImageUrl;
     private String academic_year;
     private String student_year;

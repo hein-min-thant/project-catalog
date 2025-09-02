@@ -43,7 +43,8 @@ import static com.ucsmgy.projectcatalog.mappers.ProjectMapper.objectMapper;
 public class ProjectService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
-    private final CategoryRepository categoryRepository;
+    private final DepartmentRepository departmentRepository;
+    private final CourseRepository courseRepository;
     private final CloudStorageService cloudStorageService;
     private final ProjectMapper projectMapper;
     private final ImgbbService imgbbService;
@@ -80,15 +81,17 @@ public class ProjectService {
                     throw new RuntimeException("Supervisor ID is required for non-admin users");
                 }
                 project.setApprovalStatus(Project.ApprovalStatus.PENDING);
-
-                eventPublisher.publishEvent(new ProjectSubmitEvent(this,project.getId(), dto.getSupervisorId(), user.getName(),project.getTitle(),project.getSupervisor().getName()));
-
             }
             
             applyDtoUpdatesAndUploads(project, dto , membersMap);
 
             Project savedProject = projectRepository.save(project);
-
+            if ("ADMIN".equals(user.getRole())){
+                project.setApprovalStatus(Project.ApprovalStatus.valueOf("APPROVED"));
+                eventPublisher.publishEvent(new ProjectSubmitEvent(this,project.getId(),user.getId(),user.getName(),project.getTitle(), user.getName()));
+            }else {
+                eventPublisher.publishEvent(new ProjectSubmitEvent(this, project.getId(), dto.getSupervisorId(), user.getName(), project.getTitle(), project.getSupervisor().getName()));
+            }
             return projectMapper.toDTO(savedProject);
 
         } catch (Exception e) {
@@ -124,10 +127,16 @@ public class ProjectService {
 
             project.setBody(processedBody);
         }
-        if (dto.getCategoryId() != null) {
-            Category category = categoryRepository.findById(dto.getCategoryId())
-                    .orElseThrow(() -> new EntityNotFoundException("Category with ID " + dto.getCategoryId() + " not found"));
-            project.setCategory(category);
+        if (dto.getDepartmentId() != null) {
+            Department department = departmentRepository.findById(dto.getDepartmentId())
+                    .orElseThrow(() -> new EntityNotFoundException("Department with ID " + dto.getDepartmentId() + " not found"));
+            project.setDepartment(department);
+        }
+        
+        if (dto.getCourseId() != null) {
+            Course course = courseRepository.findById(dto.getCourseId())
+                    .orElseThrow(() -> new EntityNotFoundException("Course with ID " + dto.getCourseId() + " not found"));
+            project.setCourse(course);
         }
         if(dto.getAcademic_year() != null){
             project.setAcademic_year(dto.getAcademic_year());
@@ -236,7 +245,8 @@ public class ProjectService {
 
     public Page<ProjectResponseDTO> search(
             Optional<String> keyword,
-            Optional<Long> categoryId,
+            Optional<Long> departmentId,
+            Optional<Long> courseId,
             Optional<String> tags,
             Optional<String> academicYear,
             Optional<String> studentYear,
@@ -251,14 +261,15 @@ public class ProjectService {
         Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Specification<Project> spec = new ProjectSpecification(keyword, categoryId, tags, academicYear,studentYear,name, supervisor, members);
+        Specification<Project> spec = new ProjectSpecification(keyword, departmentId, courseId, tags, academicYear,studentYear,name, supervisor, members);
 
         return projectRepository.findAll(spec, pageable).map(projectMapper::toDTO);
     }
 
     public Page<ProjectResponseDTO> searchApprovedProjects(
             Optional<String> keyword,
-            Optional<Long> categoryId,
+            Optional<Long> departmentId,
+            Optional<Long> courseId,
             Optional<String> tags,
             Optional<String> academicYear,
             Optional<String> studentYear,
@@ -273,7 +284,7 @@ public class ProjectService {
         Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Specification<Project> spec = new ProjectSpecification(keyword, categoryId, tags, academicYear,studentYear,name, supervisor, members)
+        Specification<Project> spec = new ProjectSpecification(keyword, departmentId, courseId, tags, academicYear,studentYear,name, supervisor, members)
                 .and((root, query, criteriaBuilder) -> 
                     criteriaBuilder.equal(root.get("approvalStatus"), Project.ApprovalStatus.APPROVED));
 
@@ -283,7 +294,8 @@ public class ProjectService {
     @RequiredArgsConstructor
     private static class ProjectSpecification implements Specification<Project> {
         private final Optional<String> keyword;
-        private final Optional<Long> categoryId;
+        private final Optional<Long> departmentId;
+        private final Optional<Long> courseId;
         private final Optional<String> tags;
         private final Optional<String> academicYear;
         private final Optional<String> studentYear;
@@ -302,8 +314,12 @@ public class ProjectService {
                 predicates.add(criteriaBuilder.or(titlePredicate, bodyPredicate));
             });
 
-            categoryId.ifPresent(catId ->
-                    predicates.add(criteriaBuilder.equal(root.get("category").get("id"), catId))
+            departmentId.ifPresent(deptId ->
+                    predicates.add(criteriaBuilder.equal(root.get("department").get("id"), deptId))
+            );
+
+            courseId.ifPresent(courseId ->
+                    predicates.add(criteriaBuilder.equal(root.get("course").get("id"), courseId))
             );
 
             tags.ifPresent(tagNames -> {

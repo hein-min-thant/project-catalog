@@ -22,7 +22,8 @@ public interface ProjectMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "excerpt", ignore = true)
     @Mapping(target = "user", ignore = true)
-    @Mapping(target = "category", ignore = true)
+    @Mapping(target = "department", ignore = true)
+    @Mapping(target = "course", ignore = true)  
     @Mapping(target = "reactions", ignore = true)
     @Mapping(target = "comments", ignore = true)
     @Mapping(target = "files", ignore = true) // handled separately in service
@@ -31,7 +32,8 @@ public interface ProjectMapper {
     Project toEntity(ProjectRequestDTO dto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(target = "category", ignore = true)
+    @Mapping(target = "department", ignore = true)
+    @Mapping(target = "course", ignore = true)
     @Mapping(target = "files", ignore = true)
     @Mapping(target = "tags", source = "tags", qualifiedByName = "mapTagStringsToEntities")
     @Mapping(target = "approvalStatus", source = "approvalStatus", qualifiedByName = "mapApprovalStatus") // Corrected mapping
@@ -41,7 +43,8 @@ public interface ProjectMapper {
     @Mapping(target = "tags", expression = "java(mapTags(project))")
     @Mapping(target = "membersJson", expression = "java(mapMembers(project))")
     @Mapping(source = "user.id", target = "userId")
-    @Mapping(source = "category.id", target = "categoryId")
+    @Mapping(source = "department.id", target = "departmentId")
+    @Mapping(source = "course.id", target = "courseId")
     @Mapping(source = "supervisor.id", target = "supervisorId")
     @Mapping(source = "supervisor.name", target = "supervisorName")
     @Mapping(source = "approvalStatus", target = "approvalStatus")

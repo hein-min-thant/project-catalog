@@ -19,7 +19,8 @@ public class ProjectRequestDTO {
     private String coverImageUrl;
     private String academic_year;
     private String student_year;
-    private Long categoryId;
+    private Long departmentId;
+    private Long courseId;
     private Long supervisorId;
     private String approvalStatus;
     private List<MultipartFile> projectFiles;

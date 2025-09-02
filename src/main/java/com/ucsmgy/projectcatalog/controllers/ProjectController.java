@@ -114,7 +114,8 @@ public class ProjectController {
     @GetMapping("/search")
     public ResponseEntity<Page<ProjectResponseDTO>> search(
             @RequestParam(required = false) Optional<String> keyword,
-            @RequestParam(required = false) Optional<Long> categoryId,
+            @RequestParam(required = false) Optional<Long> departmentId,
+            @RequestParam(required = false) Optional<Long> courseId,
             @RequestParam(required = false) Optional<String> tags,
             @RequestParam(required = false) Optional<String> academicYear,
             @RequestParam(required = false) Optional<String> studentYear,
@@ -134,7 +135,8 @@ public class ProjectController {
         if ("ADMIN".equals(user.getRole())) {
             Page<ProjectResponseDTO> result = projectService.search(
                     keyword,
-                    categoryId,
+                    departmentId,
+                    courseId,
                     tags,
                     academicYear,
                     studentYear,
@@ -150,7 +152,8 @@ public class ProjectController {
         } else {
             Page<ProjectResponseDTO> result = projectService.searchApprovedProjects(
                     keyword,
-                    categoryId,
+                    departmentId,
+                    courseId,
                     tags,
                     academicYear,
                     studentYear,

@@ -1,6 +1,4 @@
 package com.ucsmgy.projectcatalog.controllers;
-
-
 import com.ucsmgy.projectcatalog.dtos.*;
 import com.ucsmgy.projectcatalog.entities.User;
 import com.ucsmgy.projectcatalog.exceptions.DuplicateUserException;
@@ -34,12 +32,26 @@ public class UserController {
     private final JwtUtil jwtUtil;
     private final ImgbbService imgbbService;
     private final UserRoleService userRoleService;
+    private final PasswordResetService passwordResetService;
 
     @PostMapping("/login/request-code")
     public ResponseEntity<String> requestCodeForLogin(@Valid @RequestBody LoginRequest request) {
         loginService.requestCode(request);
         return ResponseEntity.ok("Verification code sent to your email.");
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        passwordResetService.requestPasswordReset(request);
+        return ResponseEntity.ok("If an account with that email exists, a password reset code has been sent.");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        passwordResetService.resetPassword(request);
+        return ResponseEntity.ok("Password has been reset successfully.");
+    }
+
 
     @PostMapping("/login/verify")
     public ResponseEntity<?> verifyAndAuthenticate(@Valid @RequestBody VerificationRequest request) {

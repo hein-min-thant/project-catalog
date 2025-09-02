@@ -7,6 +7,10 @@ spring:
     password: ${DB_PASSWORD}
   jpa:
     show-sql: true
+  servlet:
+    multipart:
+      max-file-size: 15MB
+      max-request-size: 20MB
 
 imgbb:
   api:

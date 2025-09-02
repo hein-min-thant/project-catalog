@@ -26,7 +26,8 @@ public class ProjectResponseDTO {
     private String student_year;
     private String objectives;
     private Long userId;
-    private Long categoryId;
+    private Long departmentId;
+    private Long courseId;
     private Long supervisorId;
     private String supervisorName;
     private String approvalStatus;

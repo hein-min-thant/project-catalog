@@ -10,12 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "categories")
+@Table(name = "departments")
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Category {
+public class Department {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -23,8 +23,9 @@ public class Category {
     @Column(nullable = false, unique = true, length = 100)
     private String name;
 
-    @OneToMany(mappedBy = "category")
+    @OneToMany(mappedBy = "department", cascade = CascadeType.ALL)
+    private List<Course> courses = new ArrayList<>();
+    
+    @OneToMany(mappedBy = "department")
     private List<Project> projects = new ArrayList<>();
-
-    // Constructors, getters, setters
 }
