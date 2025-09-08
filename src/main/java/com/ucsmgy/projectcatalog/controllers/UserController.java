@@ -105,6 +105,14 @@ public ResponseEntity<Map<String, String>> uploadAvatar(
         return ResponseEntity.ok(supervisors);
     }
 
+    @GetMapping("/supervisors-and-admins")
+    public ResponseEntity<List<User>> getAllSupervisorsAndAdmins() {
+        List<User> supervisors = userService.getAllSupervisors("SUPERVISOR");
+        List<User> admins = userService.getAllSupervisors("ADMIN");
+        supervisors.addAll(admins);
+        return ResponseEntity.ok(supervisors);
+    }
+
 
     @GetMapping
     public Iterable<UserDto> getAllUsers(

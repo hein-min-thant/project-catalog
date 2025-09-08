@@ -182,15 +182,22 @@ public class ProjectService {
                         String name = entry.getKey().trim();
                         String rollNumber = entry.getValue();
 
-                        return memberRepository.findByNameIgnoreCase(name)
+                        // Find existing member or create new one
+                        Member member = memberRepository.findByNameIgnoreCase(name)
                                 .orElseGet(() -> {
                                     Member newMember = new Member();
                                     newMember.setName(name);
-                                    if (rollNumber != null && !rollNumber.isEmpty()) {
-                                        newMember.setRollNumber(rollNumber.trim());
-                                    }
-                                    return memberRepository.save(newMember);
+                                    return newMember;
                                 });
+
+                        // UPDATE THE ROLL NUMBER FOR BOTH NEW AND EXISTING MEMBERS
+                        if (rollNumber != null && !rollNumber.isEmpty()) {
+                            member.setRollNumber(rollNumber.trim());
+                        } else {
+                            member.setRollNumber(null); // or keep existing if you prefer
+                        }
+
+                        return memberRepository.save(member); // Save both new and updated members
                     })
                     .collect(Collectors.toSet());
 
